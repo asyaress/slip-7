@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +26,10 @@ class QrSignatureService
 
     public static function generate(array $slip, ?int $slipId = null): ?string
     {
+        if (! self::canRunProcesses()) {
+            return null;
+        }
+
         $logoPath = public_path('images/logo_m.png');
         $scriptPath = base_path('scripts/generate_qr_signature.py');
 
@@ -39,17 +44,33 @@ class QrSignatureService
         $outputPath = Storage::disk('public')->path($filename);
 
         $python = self::pythonBinary();
-        $payload = self::buildPayload($slip);
+        if (! $python) {
+            return null;
+        }
 
-        $result = Process::timeout(30)->run([
-            $python,
-            $scriptPath,
-            $payload,
-            $logoPath,
-            $outputPath,
-        ]);
+        try {
+            $result = Process::timeout(30)->run([
+                $python,
+                $scriptPath,
+                self::buildPayload($slip),
+                $logoPath,
+                $outputPath,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('QR signature generation failed', [
+                'message' => $e->getMessage(),
+                'slip_id' => $slipId,
+            ]);
+
+            return null;
+        }
 
         if (! $result->successful() || ! file_exists($outputPath)) {
+            Log::warning('QR signature script failed', [
+                'stderr' => $result->errorOutput(),
+                'slip_id' => $slipId,
+            ]);
+
             return null;
         }
 
@@ -65,15 +86,34 @@ class QrSignatureService
         return asset('storage/'.$relativePath);
     }
 
-    private static function pythonBinary(): string
+    private static function canRunProcesses(): bool
     {
-        foreach (['python', 'python3', 'py'] as $bin) {
-            $check = Process::run([$bin, '--version']);
-            if ($check->successful()) {
-                return $bin;
+        if (! function_exists('proc_open')) {
+            return false;
+        }
+
+        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+
+        return ! in_array('proc_open', $disabled, true);
+    }
+
+    private static function pythonBinary(): ?string
+    {
+        if (! self::canRunProcesses()) {
+            return null;
+        }
+
+        foreach (['python3', 'python', 'py'] as $bin) {
+            try {
+                $check = Process::run([$bin, '--version']);
+                if ($check->successful()) {
+                    return $bin;
+                }
+            } catch (\Throwable) {
+                continue;
             }
         }
 
-        return 'python';
+        return null;
     }
 }
