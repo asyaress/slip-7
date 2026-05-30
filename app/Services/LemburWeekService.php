@@ -32,7 +32,7 @@ class LemburWeekService
                 }
 
                 $monthLabel = $weekStart->locale('id')->translatedFormat('M');
-                $periode = $weekStart->format('j').'–'.$weekEnd->format('j').' '.$monthLabel;
+                $periode = $weekStart->format('j').'-'.$weekEnd->format('j').' '.$monthLabel;
 
                 $weeks[] = [
                     'minggu' => count($weeks) + 1,

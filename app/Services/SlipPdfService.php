@@ -20,7 +20,10 @@ class SlipPdfService
             ],
         ]);
 
-        $pdf->setPaper('a4', 'portrait');
+        $pdf->setPaper('a4', 'portrait')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true)
+            ->setOption('defaultFont', 'DejaVu Serif');
 
         return $pdf->output();
     }
@@ -48,7 +51,37 @@ class SlipPdfService
 
         $path = Storage::disk('public')->path($relativePath);
 
+        if (! is_file($path)) {
+            return null;
+        }
+
+        if (str_ends_with(strtolower($relativePath), '.svg')) {
+            $pngDataUri = self::svgFileToPngDataUri($path);
+            if ($pngDataUri) {
+                return $pngDataUri;
+            }
+        }
+
         return self::embedFile($path);
+    }
+
+    private static function svgFileToPngDataUri(string $svgPath): ?string
+    {
+        if (! extension_loaded('imagick') || ! class_exists(\Imagick::class)) {
+            return null;
+        }
+
+        try {
+            $imagick = new \Imagick();
+            $imagick->setBackgroundColor(new \ImagickPixel('white'));
+            $imagick->readImageBlob((string) file_get_contents($svgPath));
+            $imagick->setImageFormat('png');
+            $imagick->resizeImage(280, 280, \Imagick::FILTER_LANCZOS, 1, true);
+
+            return 'data:image/png;base64,'.base64_encode($imagick->getImageBlob());
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private static function embedFile(string $path): ?string

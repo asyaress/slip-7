@@ -101,13 +101,13 @@
                 <td style="width:28px;">{{ $noPot++ }}.</td>
                 <td>{{ $label }}</td>
                 <td style="width:12px;">:</td>
-                <td class="amount deduction">− {{ \App\Services\SlipGajiCalculator::formatRupiah($slip['potongan'][$key] ?? 0) }}</td>
+                <td class="amount deduction">- {{ \App\Services\SlipGajiCalculator::formatRupiah($slip['potongan'][$key] ?? 0) }}</td>
                 <td></td>
             </tr>
             @endforeach
             <tr class="subtotal">
                 <td colspan="3"></td>
-                <td class="amount deduction">− {{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_potongan']) }}</td>
+                <td class="amount deduction">- {{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_potongan']) }}</td>
                 <td></td>
             </tr>
         </table>
