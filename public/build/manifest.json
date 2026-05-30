@@ -1,0 +1,23 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-DesgCjgq.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-UyRVujZY.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/slip-form.js": {
+    "file": "assets/slip-form-DaJ81mbv.js",
+    "name": "slip-form",
+    "src": "resources/js/slip-form.js",
+    "isEntry": true
+  }
+}
