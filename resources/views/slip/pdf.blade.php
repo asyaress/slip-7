@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Slip Gaji - {{ $slip['employee']['name'] }}</title>
-    @include('slip.partials.styles')
     <style>
         @page {
             size: A4 portrait;
-            margin: 1.2cm 1.4cm;
+            margin: 0.85cm 1.1cm;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -16,82 +19,240 @@
             padding: 0;
             background: white;
             font-family: 'DejaVu Serif', serif;
-            font-size: 10pt;
-            line-height: 1.45;
+            font-size: 9pt;
+            line-height: 1.28;
+            color: #1a1a1a;
         }
 
+        .print-container,
         .slip-page {
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: none !important;
-            font-family: 'DejaVu Serif', serif;
-        }
-
-        .slip-kop {
-            max-height: 88px;
-            margin-bottom: 10px;
-        }
-
-        .slip-page .doc-title { font-size: 12pt; margin-bottom: 2px; }
-        .slip-page .doc-number { margin-bottom: 14px; }
-        .slip-page .opening-text { margin-bottom: 12px; }
-        .slip-page .employee-box { margin: 10px 0 12px; padding: 8px 12px; }
-        .slip-page .attendance-box { margin: 10px 0 12px; padding: 8px 10px; }
-        .slip-page .section-title { margin: 12px 0 6px; }
-        .slip-page table.gaji td { padding: 3px 6px; }
-        .slip-page .thp-box { margin: 10px 0; padding: 8px 12px; }
-        .slip-page .total-pendapatan { margin: 10px 0; padding: 8px 12px; }
-        .slip-page .closing-text { margin-top: 14px; }
-
-        /* DomPDF tidak support flex — pakai table layout */
-        .slip-page .thp-box,
-        .slip-page .total-pendapatan {
-            display: table;
+            margin: 0;
+            padding: 0;
+            max-width: none;
             width: 100%;
         }
 
-        .slip-page .thp-box > span,
-        .slip-page .total-pendapatan > span {
-            display: table-cell;
-            vertical-align: middle;
+        .slip-kop {
+            width: 100%;
+            max-height: 64px;
+            object-fit: contain;
+            object-position: center top;
+            margin-bottom: 4px;
         }
 
-        .slip-page .thp-box .thp-amount,
-        .slip-page .total-pendapatan > span:last-child {
+        .doc-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+            letter-spacing: 0.3px;
+            text-decoration: underline;
+            margin-bottom: 2px;
+            color: #42091a;
+        }
+
+        .doc-number {
+            text-align: center;
+            font-size: 9pt;
+            color: #444;
+            margin-bottom: 8px;
+        }
+
+        .opening-text {
+            text-align: justify;
+            margin: 0 0 8px;
+        }
+
+        table.info {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.info td {
+            padding: 1px 6px 1px 0;
+            vertical-align: top;
+        }
+
+        table.info td.label {
+            width: 95px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        table.info td.colon {
+            width: 10px;
+        }
+
+        .employee-box {
+            border: 1px solid #d1d5db;
+            background: #fafafa;
+            padding: 6px 10px;
+            margin: 6px 0 8px;
+        }
+
+        .attendance-box {
+            border: 1px solid #781a38;
+            border-left: 3px solid #781a38;
+            background: #fdf2f4;
+            padding: 5px 8px;
+            margin: 6px 0 8px;
+            font-size: 9pt;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 9.5pt;
+            color: #42091a;
+            margin: 6px 0 2px;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        table.gaji {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2px;
+        }
+
+        table.gaji td {
+            padding: 2px 4px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 9pt;
+        }
+
+        table.gaji tr.subtotal td {
+            border-top: 1px solid #333;
+            border-bottom: none;
+            font-weight: bold;
+            padding-top: 3px;
+        }
+
+        table.gaji tr.section-header td {
+            font-weight: bold;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            color: #42091a;
+            padding-top: 4px;
+        }
+
+        .amount {
             text-align: right;
             white-space: nowrap;
         }
 
-        /* Tanda tangan + QR tidak boleh terpisah antar halaman */
-        .slip-page .signature-section {
-            margin-top: 18px;
+        .unit-label {
+            font-size: 8pt;
+            color: #666;
+            width: 72px;
+            white-space: nowrap;
+        }
+
+        .highlight {
+            background-color: #fef08a;
+            padding: 1px 4px;
+            font-weight: bold;
+        }
+
+        .thp-box,
+        .total-pendapatan {
+            display: table;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .thp-box {
+            background: #fdf2f4;
+            border: 1px solid #781a38;
+            padding: 5px 8px;
+            margin: 6px 0;
+        }
+
+        .thp-box > span,
+        .total-pendapatan > span {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .thp-box .thp-amount {
+            text-align: right;
+            white-space: nowrap;
+            font-size: 10pt;
+            color: #42091a;
+            background: #fef08a;
+            padding: 2px 6px;
+        }
+
+        .total-pendapatan {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 5px 8px;
+            margin: 6px 0;
+            font-size: 9.5pt;
+        }
+
+        .total-pendapatan > span:last-child {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .deduction {
+            color: #b91c1c;
+        }
+
+        .closing-text {
+            margin: 8px 0 0;
+            text-align: justify;
+        }
+
+        .signature-section {
+            margin-top: 8px;
+        }
+
+        .signature-place-date {
+            text-align: right;
+            margin: 0 0 6px;
+            font-size: 9.5pt;
+        }
+
+        .signature-row {
+            width: 100%;
+            text-align: right;
+        }
+
+        .signature-block {
+            display: inline-block;
+            width: 220px;
+            text-align: center;
             page-break-inside: avoid;
         }
 
-        .slip-page .signature-place-date {
-            margin-bottom: 12px;
-            page-break-after: avoid;
+        .signature-role {
+            margin: 0 0 4px;
+            font-size: 9.5pt;
+            line-height: 1.25;
+            text-align: center;
         }
 
-        .slip-page .signature-row,
-        .slip-page .signature-block {
-            page-break-inside: avoid;
+        .signature-area {
+            width: 100%;
+            height: 64px;
+            text-align: center;
+            margin-bottom: 4px;
         }
 
-        .slip-page .signature-area {
-            height: 82px;
-            margin-bottom: 6px;
+        .qr-image {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
         }
 
-        .slip-page .qr-image {
-            width: 76px;
-            height: 76px;
-        }
-
-        .slip-page .signature-role {
-            margin-bottom: 6px;
+        .signature-name {
+            margin: 0;
+            font-weight: bold;
+            font-size: 9.5pt;
+            text-decoration: underline;
+            line-height: 1.25;
+            text-align: center;
         }
     </style>
 </head>
