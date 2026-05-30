@@ -6,8 +6,9 @@ from pathlib import Path
 
 EXCEL = Path(__file__).resolve().parents[2] / "NOMOR INDUK KARYAWAN TOEDJOE SINAR GROUP (2).xlsx"
 
-CONFIG_NAMES = {
-    "SUGIANTO": ("sugynuansafx@gmail.com", "Kepala Maintenance Operator"),
+EXCLUDE_NAMES = {"ELGI SAMSUDDIN"}
+
+CONFIG_NAMES = { ("sugynuansafx@gmail.com", "Kepala Maintenance Operator"),
     "MUHAMMAD NOR DIANSYAH": ("Nurdinzds@gmail.com", "Kepala Operator Indoor"),
     "SRI WAHYUNI": ("uyung109@gmail.com", "Kepala Desainer"),
     "FELIX OCTAVIAN MAHENDRA": ("mahendrafelix@gmail.com", "Kepala Admin & Personalia"),
@@ -38,7 +39,6 @@ CONFIG_NAMES = {
     "MUHAMMAD RAWINDRA FADILAH": ("Fadilfira31@gmail.com", "Asisten Digital A3"),
     "MUHAMMAD KAMAL": ("raeelyy21@gmail.com", "Asisten Merchandise"),
     "MUHAMMAD ILHAM NAZHIF": ("m.ilhamnazhif23@gmail.com", "Asisten Operator Outdoor"),
-    "ELGI SAMSUDDIN": ("elgi.samsuddin@toedjoesinargroup.com", "Asisten Operator Outdoor"),
     "AYU NANDA WULANDARI": ("ayunandawul15@gmail.com", "Desainer Admin Online"),
     "DAVI JUNIAR": ("juniardavi5@gmail.com", "Asisten Digital A3"),
     "MUHAMMAD ZIKRI FARHAN": ("zikrifarhan05@gmail.com", "Asisten Indoor Cutting"),
@@ -67,6 +67,8 @@ def main() -> None:
 
         no = int(no)
         name = str(ws.cell(r, 3).value).strip().upper()
+        if name in EXCLUDE_NAMES:
+            continue
         birth_year = int(ws.cell(r, 4).value)
         birth_month = str(ws.cell(r, 5).value).zfill(2)
         birth_day = str(ws.cell(r, 6).value).zfill(2)

@@ -38,6 +38,9 @@ class EmployeeSeeder extends Seeder
             $seeded++;
         }
 
-        $this->command?->info("Seeder karyawan selesai: {$seeded} data (nomor 1–{$seeded}).");
+        $configNomors = array_map('intval', array_keys($list));
+        Employee::whereNotIn('nomor', $configNomors)->delete();
+
+        $this->command?->info("Seeder karyawan selesai: {$seeded} data.");
     }
 }
