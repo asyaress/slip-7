@@ -16,7 +16,7 @@ class NipService
         $lahir = Carbon::parse($tglLahir);
 
         return sprintf(
-            'TSG15%s%s%s%s%02d',
+            'TSG-15-%s-%s-%s-%s-%02d',
             $masuk->format('Y'),
             $lahir->format('d'),
             $lahir->format('m'),

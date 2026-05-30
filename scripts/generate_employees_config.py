@@ -129,7 +129,7 @@ def load_excel() -> dict[str, dict]:
 def build_nip(nomor: int, tgl_masuk: str, tgl_lahir: str) -> str:
     hy, _, _ = tgl_masuk.split("-")
     by, bm, bd = tgl_lahir.split("-")
-    return f"TSG15{hy}{bd}{bm}{by}{nomor:02d}"
+    return f"TSG-15-{hy}-{bd}-{bm}-{by}-{nomor:02d}"
 
 
 def main() -> None:
