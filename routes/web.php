@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\DashboardController;
@@ -9,6 +10,10 @@ use App\Http\Controllers\ReviewSlipController;
 use App\Http\Controllers\SlipGajiController;
 use App\Http\Controllers\TwoFactorDeviceController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/debug/status', [DebugController::class, 'status'])->name('debug.status');
+Route::get('/debug/last-error', [DebugController::class, 'lastError'])->name('debug.last-error');
+Route::get('/debug/test-slip', [DebugController::class, 'testSlipBuild'])->name('debug.test-slip');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
