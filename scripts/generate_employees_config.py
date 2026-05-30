@@ -112,13 +112,10 @@ def load_excel() -> dict[str, dict]:
         birth_year = int(ws.cell(r, 4).value)
         birth_month = str(ws.cell(r, 5).value).zfill(2)
         birth_day = str(ws.cell(r, 6).value).zfill(2)
-        hire_year = int(ws.cell(r, 7).value)
-        hire_month = str(ws.cell(r, 8).value).zfill(2)
         address = ws.cell(r, 11).value
 
         rows[name] = {
             "tgl_lahir": f"{birth_year}-{birth_month}-{birth_day}",
-            "tgl_masuk": f"{hire_year}-{hire_month}-01",
             "jenis_kelamin": str(ws.cell(r, 9).value).strip(),
             "alamat": (address or "Samarinda").strip(),
         }
@@ -142,7 +139,7 @@ def main() -> None:
 
         email, jabatan, alamat_fb, tgl_masuk_fb = fb
         tgl_lahir = ex.get("tgl_lahir")
-        tgl_masuk = ex.get("tgl_masuk", tgl_masuk_fb)
+        tgl_masuk = tgl_masuk_fb
         jenis_kelamin = ex.get("jenis_kelamin", "LAKI-LAKI")
         alamat = ex.get("alamat", alamat_fb)
 
