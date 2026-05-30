@@ -1,7 +1,7 @@
 <div class="print-container">
     <div class="slip-page">
         {{-- Kop Surat --}}
-        <img src="{{ asset('images/kop.png') }}" alt="Kop Surat {{ config('company.name') }}" class="slip-kop">
+        <img src="{{ ($images ?? [])['kop'] ?? asset('images/kop.png') }}" alt="Kop Surat {{ config('company.name') }}" class="slip-kop">
 
         <div class="doc-title">SURAT KETERANGAN GAJI</div>
         <div class="doc-number">{{ $slip['nomor_surat'] }}</div>
@@ -92,12 +92,16 @@
         <div class="section-title">Potongan :</div>
         <table class="gaji">
             @php $noPot = 1; @endphp
-            @foreach(['angsuran' => 'Angsuran', 'kasbon' => 'Kasbon'] as $key => $label)
+            @foreach([
+                'angsuran' => 'Angsuran',
+                'kasbon' => 'Kasbon',
+                'lain_lain' => 'Lain-Lain (Kelalaian Kerja, Keterlambatan, dll.)',
+            ] as $key => $label)
             <tr>
                 <td style="width:28px;">{{ $noPot++ }}.</td>
                 <td>{{ $label }}</td>
                 <td style="width:12px;">:</td>
-                <td class="amount deduction">− {{ \App\Services\SlipGajiCalculator::formatRupiah($slip['potongan'][$key]) }}</td>
+                <td class="amount deduction">− {{ \App\Services\SlipGajiCalculator::formatRupiah($slip['potongan'][$key] ?? 0) }}</td>
                 <td></td>
             </tr>
             @endforeach
@@ -155,18 +159,11 @@
 
             <div class="signature-row">
                 <div class="signature-block">
-                    <p class="signature-role">Karyawan,</p>
-                    <div class="signature-area">
-                        <div class="signature-line"></div>
-                    </div>
-                    <p class="signature-name">{{ $slip['employee']['name'] }}</p>
-                </div>
-
-                <div class="signature-block">
                     <p class="signature-role">{{ config('employees.director.title') }},</p>
                     <div class="signature-area">
-                        @if(!empty($slip['qr_signature_url']))
-                            <img src="{{ $slip['qr_signature_url'] }}" alt="QR Dokumen" class="qr-image">
+                        @php $qrSrc = ($images ?? [])['qr'] ?? ($slip['qr_signature_url'] ?? null); @endphp
+                        @if(!empty($qrSrc))
+                            <img src="{{ $qrSrc }}" alt="QR Dokumen" class="qr-image">
                         @endif
                     </div>
                     <p class="signature-name">{{ config('employees.director.name') }}</p>

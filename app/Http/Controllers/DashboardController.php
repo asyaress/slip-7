@@ -2,31 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
-use App\Models\SalarySlip;
+use App\Services\DashboardAnalytics;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $stats = [
-            'total_karyawan' => Employee::where('is_active', true)->count(),
-            'slip_bulan_ini' => SalarySlip::where('bulan', now()->month)
-                ->where('tahun', now()->year)->count(),
-            'belum_kirim' => SalarySlip::where('bulan', now()->month)
-                ->where('tahun', now()->year)
-                ->whereNull('email_sent_at')->count(),
-            'sudah_kirim' => SalarySlip::where('bulan', now()->month)
-                ->where('tahun', now()->year)
-                ->whereNotNull('email_sent_at')->count(),
-        ];
+        $bulan = (int) $request->get('bulan', now()->month);
+        $tahun = (int) $request->get('tahun', now()->year);
 
-        $recentSlips = SalarySlip::with('employee')
-            ->latest()
-            ->limit(5)
-            ->get();
+        $analytics = DashboardAnalytics::forPeriod($bulan, $tahun);
 
-        return view('dashboard.index', compact('stats', 'recentSlips'));
+        return view('dashboard.index', $analytics);
     }
 }

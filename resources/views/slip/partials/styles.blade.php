@@ -236,54 +236,36 @@
     }
 
     .slip-page .signature-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 32px;
-        align-items: start;
+        width: 100%;
+        text-align: right;
     }
 
     .slip-page .signature-block {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        display: inline-block;
+        width: 240px;
         text-align: center;
+        vertical-align: top;
     }
 
     .slip-page .signature-role {
         margin: 0 0 10px;
         font-size: 11pt;
-        min-height: 2.6em;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
         line-height: 1.35;
-        width: 100%;
+        text-align: center;
     }
 
     .slip-page .signature-area {
         width: 100%;
         height: 96px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        text-align: center;
         margin-bottom: 10px;
-    }
-
-    .slip-page .signature-block:first-child .signature-area {
-        align-items: flex-end;
-        padding-bottom: 2px;
-    }
-
-    .slip-page .signature-line {
-        width: 200px;
-        border-bottom: 1px dotted #666;
     }
 
     .slip-page .qr-image {
         width: 88px;
         height: 88px;
         object-fit: contain;
-        display: block;
+        display: inline-block;
     }
 
     @media print {
@@ -300,9 +282,6 @@
         text-decoration: underline;
         text-underline-offset: 3px;
         line-height: 1.4;
-        min-height: 2.6em;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
+        text-align: center;
     }
 </style>

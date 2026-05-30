@@ -1,24 +1,64 @@
 @extends('layouts.app')
 
-@section('title', 'Input Slip Gaji')
-@section('page-title', 'Input Slip Gaji')
-@section('page-subtitle', 'Pilih karyawan dan isi rincian gaji untuk generate slip')
+@section('title', isset($editingSlip) ? 'Edit Slip Gaji' : 'Input Slip Gaji')
+@section('page-title', isset($editingSlip) ? 'Edit Slip Gaji' : 'Input Slip Gaji')
+@section('page-subtitle', isset($editingSlip)
+    ? 'Perbarui slip ' . $editingSlip->employee->name . ' — ' . $editingSlip->periodeLabel()
+    : 'Pilih karyawan dan isi rincian gaji untuk generate slip')
 
 @php
-    $formatOldRupiah = function ($key, $default = '') {
-        $val = old($key, $default);
+    $formData = $formData ?? [];
+    $preserveForm = $preserveForm ?? false;
+
+    $formValue = function ($key, $default = '') use ($formData) {
+        $val = old($key);
+        if ($val !== null) {
+            return $val;
+        }
+        if (array_key_exists($key, $formData)) {
+            return $formData[$key];
+        }
+
+        return $default;
+    };
+
+    $formatFormRupiah = function ($key, $default = '') use ($formValue) {
+        $val = $formValue($key, $default);
         if ($val === '' || $val === null) {
             return '';
         }
+
         return number_format((float) $val, 0, ',', '.');
     };
 @endphp
 
 @section('content')
-<div class="grid lg:grid-cols-3 gap-8">
+<div id="slip-form-root"
+     data-existing-url="{{ route('slip.existing') }}"
+     @if($preserveForm) data-preserve-form="1" @elseif(!empty($formData)) data-initial-form='@json($formData)' @endif
+     class="grid lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2">
+        <div id="existing-slip-notice" class="hidden card p-4 mb-6 bg-amber-50 border-amber-200">
+            <p class="text-sm text-amber-900">
+                <strong>Slip periode ini sudah ada.</strong> Data form diisi otomatis — simpan akan <strong>memperbarui</strong> slip yang sudah ada, bukan membuat baru.
+            </p>
+        </div>
+
+        @isset($editingSlip)
+        <div class="card p-4 mb-6 bg-blue-50 border-blue-200">
+            <p class="text-sm text-blue-900">
+                Anda sedang <strong>mengedit slip</strong> periode {{ $editingSlip->periodeLabel() }} untuk <strong>{{ $editingSlip->employee->name }}</strong>.
+            </p>
+        </div>
+        @endisset
+
         <form id="slip-form" action="{{ route('slip.store') }}" method="POST" class="space-y-6">
             @csrf
+            @isset($editingSlip)
+                <input type="hidden" name="_editing_slip_id" value="{{ $editingSlip->id }}">
+            @elseif(old('_editing_slip_id'))
+                <input type="hidden" name="_editing_slip_id" value="{{ old('_editing_slip_id') }}">
+            @endisset
 
             {{-- Pilih Karyawan --}}
             <section class="card p-6">
@@ -30,7 +70,7 @@
                             <option value="">-- Pilih Karyawan --</option>
                             @foreach($employees as $emp)
                                 <option value="{{ $emp->id }}" data-jabatan="{{ $emp->jabatan }}" data-email="{{ $emp->email }}"
-                                    @selected(old('employee_id') == $emp->id)>
+                                    @selected($formValue('employee_id') == $emp->id)>
                                     {{ $emp->nomor }}. {{ $emp->name }}
                                 </option>
                             @endforeach
@@ -55,13 +95,13 @@
                         <label for="bulan" class="block text-sm font-medium text-slate-700 mb-1">Bulan</label>
                         <select name="bulan" id="bulan" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             @foreach(['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $i => $nama)
-                                <option value="{{ $i + 1 }}" @selected(old('bulan', now()->month) == $i + 1)>{{ $nama }}</option>
+                                <option value="{{ $i + 1 }}" @selected($formValue('bulan', now()->month) == $i + 1)>{{ $nama }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="tahun" class="block text-sm font-medium text-slate-700 mb-1">Tahun</label>
-                        <input type="number" name="tahun" id="tahun" value="{{ old('tahun', now()->year) }}" min="2020" max="2100" required
+                        <input type="number" name="tahun" id="tahun" value="{{ $formValue('tahun', now()->year) }}" min="2020" max="2100" required
                             class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                 </div>
@@ -73,22 +113,22 @@
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
                         <label for="jumlah_kehadiran" class="block text-sm font-medium text-slate-700 mb-1">Jumlah Kehadiran (Hari Kerja)</label>
-                        <input type="number" name="jumlah_kehadiran" id="jumlah_kehadiran" value="{{ old('jumlah_kehadiran', 26) }}" min="0" required
+                        <input type="number" name="jumlah_kehadiran" id="jumlah_kehadiran" value="{{ $formValue('jumlah_kehadiran', 26) }}" min="0" required
                             class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                     <div>
                         <label for="hadir" class="block text-sm font-medium text-slate-700 mb-1">Hadir</label>
-                        <input type="number" name="hadir" id="hadir" value="{{ old('hadir', 26) }}" min="0" required
+                        <input type="number" name="hadir" id="hadir" value="{{ $formValue('hadir', 26) }}" min="0" required
                             class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                     <div>
                         <label for="sakit_izin" class="block text-sm font-medium text-slate-700 mb-1">Sakit / Izin</label>
-                        <input type="number" name="sakit_izin" id="sakit_izin" value="{{ old('sakit_izin', 0) }}" min="0"
+                        <input type="number" name="sakit_izin" id="sakit_izin" value="{{ $formValue('sakit_izin', 0) }}" min="0"
                             class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                     <div>
                         <label for="tidak_hadir" class="block text-sm font-medium text-slate-700 mb-1">Tidak Hadir (Tanpa Keterangan)</label>
-                        <input type="number" name="tidak_hadir" id="tidak_hadir" value="{{ old('tidak_hadir', 0) }}" min="0"
+                        <input type="number" name="tidak_hadir" id="tidak_hadir" value="{{ $formValue('tidak_hadir', 0) }}" min="0"
                             class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                 </div>
@@ -103,7 +143,7 @@
                         <div class="sm:col-span-2 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
-                                value="{{ $formatOldRupiah('gaji_pokok') }}" required placeholder="0"
+                                value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
@@ -126,7 +166,7 @@
                         <div class="sm:col-span-2 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="{{ $field }}" id="{{ $field }}"
-                                value="{{ $formatOldRupiah($field, 0) }}" placeholder="0"
+                                value="{{ $formatFormRupiah($field, 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
@@ -142,6 +182,7 @@
                         $potonganFields = [
                             'pot_angsuran' => 'Angsuran',
                             'pot_kasbon' => 'Kasbon',
+                            'pot_lain_lain' => 'Lain-Lain (Kelalaian Kerja, Keterlambatan, dll.)',
                         ];
                     @endphp
                     @foreach($potonganFields as $field => $label)
@@ -150,7 +191,7 @@
                         <div class="sm:col-span-2 rupiah-field rupiah-field--danger">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="{{ $field }}" id="{{ $field }}"
-                                value="{{ $formatOldRupiah($field, 0) }}" placeholder="0"
+                                value="{{ $formatFormRupiah($field, 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
@@ -167,7 +208,7 @@
                         <div class="sm:col-span-2 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="bpjs_kesehatan" id="bpjs_kesehatan"
-                                value="{{ $formatOldRupiah('bpjs_kesehatan', 186222) }}" placeholder="0"
+                                value="{{ $formatFormRupiah('bpjs_kesehatan', 186222) }}" placeholder="0"
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
@@ -176,7 +217,7 @@
                         <div class="sm:col-span-2 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="makan_siang_malam" id="makan_siang_malam"
-                                value="{{ $formatOldRupiah('makan_siang_malam', 0) }}" placeholder="0"
+                                value="{{ $formatFormRupiah('makan_siang_malam', 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
@@ -185,7 +226,7 @@
                         <div class="sm:col-span-2 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="pensiun" id="pensiun"
-                                value="{{ $formatOldRupiah('pensiun', 0) }}" placeholder="0"
+                                value="{{ $formatFormRupiah('pensiun', 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
@@ -193,8 +234,8 @@
             </section>
 
             <div class="flex flex-wrap gap-3">
-                <button type="submit" formaction="{{ route('slip.store') }}" class="btn-primary">
-                    Simpan & Generate Slip
+                <button type="submit" formaction="{{ route('slip.store') }}" id="btn-save-slip" class="btn-primary">
+                    {{ isset($editingSlip) ? 'Perbarui Slip Gaji' : 'Simpan & Generate Slip' }}
                 </button>
                 <button type="submit" formaction="{{ route('slip.preview') }}" class="btn-secondary">
                     Preview Dulu

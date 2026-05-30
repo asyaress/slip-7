@@ -58,6 +58,36 @@ class SalarySlip extends Model
         return $this->email_sent_at !== null && $this->email_status === 'sent';
     }
 
+    public function toFormInputs(): array
+    {
+        $tunjangan = $this->tunjangan ?? [];
+        $potongan = $this->potongan ?? [];
+
+        return [
+            'employee_id' => $this->employee_id,
+            'bulan' => $this->bulan,
+            'tahun' => $this->tahun,
+            'gaji_pokok' => $this->gaji_pokok,
+            'tunj_transport' => $tunjangan['transport'] ?? 0,
+            'tunj_kehadiran' => $tunjangan['kehadiran'] ?? 0,
+            'tunj_kinerja' => $tunjangan['kinerja'] ?? 0,
+            'tunj_jabatan' => $tunjangan['jabatan'] ?? 0,
+            'tunj_perawatan' => $tunjangan['perawatan'] ?? 0,
+            'tunj_operator' => $tunjangan['operator'] ?? 0,
+            'tunj_konsumsi' => $tunjangan['konsumsi'] ?? 0,
+            'pot_angsuran' => $potongan['angsuran'] ?? 0,
+            'pot_kasbon' => $potongan['kasbon'] ?? 0,
+            'pot_lain_lain' => $potongan['lain_lain'] ?? 0,
+            'jumlah_kehadiran' => $this->jumlah_kehadiran,
+            'hadir' => $this->hadir,
+            'sakit_izin' => $this->sakit_izin,
+            'tidak_hadir' => $this->tidak_hadir,
+            'bpjs_kesehatan' => $this->bpjs_kesehatan,
+            'makan_siang_malam' => $this->makan_siang_malam,
+            'pensiun' => $this->pensiun,
+        ];
+    }
+
     public function toSlipArray(): array
     {
         $employee = $this->employee;

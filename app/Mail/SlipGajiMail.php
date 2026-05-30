@@ -3,8 +3,10 @@
 namespace App\Mail;
 
 use App\Models\SalarySlip;
+use App\Services\SlipPdfService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -30,5 +32,15 @@ class SlipGajiMail extends Mailable
             view: 'emails.slip-gaji',
             with: ['slip' => $this->salarySlip->toSlipArray()],
         );
+    }
+
+    public function attachments(): array
+    {
+        return [
+            Attachment::fromData(
+                fn () => SlipPdfService::generate($this->salarySlip),
+                SlipPdfService::filename($this->salarySlip),
+            )->withMime('application/pdf'),
+        ];
     }
 }

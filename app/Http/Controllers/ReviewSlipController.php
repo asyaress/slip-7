@@ -55,8 +55,10 @@ class ReviewSlipController extends Controller
     public function blast(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'bulan' => 'required|integer|min:1|max:12',
-            'tahun' => 'required|integer|min:2020|max:2100',
+            'slip_ids' => 'required|array|min:1',
+            'slip_ids.*' => 'integer|exists:salary_slips,id',
+            'bulan' => 'nullable|integer|min:1|max:12',
+            'tahun' => 'nullable|integer|min:2020|max:2100',
         ]);
 
         if (config('mail.default') === 'smtp' && empty(config('mail.mailers.smtp.password'))) {
@@ -64,12 +66,11 @@ class ReviewSlipController extends Controller
         }
 
         $slips = SalarySlip::with('employee')
-            ->where('bulan', $validated['bulan'])
-            ->where('tahun', $validated['tahun'])
+            ->whereIn('id', $validated['slip_ids'])
             ->get();
 
         if ($slips->isEmpty()) {
-            return back()->with('error', 'Tidak ada slip gaji untuk periode ini.');
+            return back()->with('error', 'Tidak ada slip yang dipilih.');
         }
 
         $sent = 0;
@@ -95,10 +96,13 @@ class ReviewSlipController extends Controller
             $message .= ", {$failed} gagal";
         }
 
-        return redirect()->route('review.index', [
-            'bulan' => $validated['bulan'],
-            'tahun' => $validated['tahun'],
-        ])->with($failed > 0 ? 'warning' : 'success', $message);
+        $redirectParams = array_filter([
+            'bulan' => $validated['bulan'] ?? null,
+            'tahun' => $validated['tahun'] ?? null,
+        ]);
+
+        return redirect()->route('review.index', $redirectParams)
+            ->with($failed > 0 ? 'warning' : 'success', $message);
     }
 
     public function sendOne(SalarySlip $slip): RedirectResponse

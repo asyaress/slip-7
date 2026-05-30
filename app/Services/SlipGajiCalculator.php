@@ -34,6 +34,7 @@ class SlipGajiCalculator
         $potongan = [
             'angsuran' => (float) ($data['pot_angsuran'] ?? 0),
             'kasbon' => (float) ($data['pot_kasbon'] ?? 0),
+            'lain_lain' => (float) ($data['pot_lain_lain'] ?? 0),
         ];
 
         $totalTunjangan = array_sum($tunjangan);

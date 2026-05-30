@@ -13,6 +13,8 @@ Route::get('/karyawan/{employee}/edit', [EmployeeController::class, 'edit'])->na
 Route::put('/karyawan/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
 
 Route::get('/slip-gaji', [SlipGajiController::class, 'create'])->name('slip.create');
+Route::get('/slip-gaji/existing', [SlipGajiController::class, 'existing'])->name('slip.existing');
+Route::get('/slip-gaji/{slip}/edit', [SlipGajiController::class, 'edit'])->name('slip.edit');
 Route::post('/slip-gaji/preview', [SlipGajiController::class, 'preview'])->name('slip.preview');
 Route::post('/slip-gaji', [SlipGajiController::class, 'store'])->name('slip.store');
 

@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\SalarySlip;
 use App\Services\SlipGajiBuilder;
 use App\Services\SlipGajiCalculator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,15 +17,51 @@ class SlipGajiController extends Controller
         'gaji_pokok',
         'tunj_transport', 'tunj_kehadiran', 'tunj_kinerja', 'tunj_jabatan',
         'tunj_perawatan', 'tunj_operator', 'tunj_konsumsi',
-        'pot_angsuran', 'pot_kasbon',
+        'pot_angsuran', 'pot_kasbon', 'pot_lain_lain',
         'bpjs_kesehatan', 'makan_siang_malam', 'pensiun',
     ];
 
     public function create(): View
     {
         $employees = Employee::where('is_active', true)->orderBy('nomor')->get();
+        $preserveForm = ! empty(session()->getOldInput());
 
-        return view('slip.create', compact('employees'));
+        return view('slip.create', compact('employees', 'preserveForm'));
+    }
+
+    public function edit(SalarySlip $slip): View
+    {
+        $slip->load('employee');
+        $employees = Employee::where('is_active', true)->orderBy('nomor')->get();
+        $editingSlip = $slip;
+        $formData = $slip->toFormInputs();
+        $preserveForm = ! empty(session()->getOldInput());
+
+        return view('slip.create', compact('employees', 'editingSlip', 'formData', 'preserveForm'));
+    }
+
+    public function existing(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'bulan' => 'required|integer|min:1|max:12',
+            'tahun' => 'required|integer|min:2020|max:2100',
+        ]);
+
+        $slip = SalarySlip::where('employee_id', $validated['employee_id'])
+            ->where('bulan', $validated['bulan'])
+            ->where('tahun', $validated['tahun'])
+            ->first();
+
+        if (! $slip) {
+            return response()->json(['exists' => false]);
+        }
+
+        return response()->json([
+            'exists' => true,
+            'slip_id' => $slip->id,
+            'data' => $slip->toFormInputs(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -35,8 +72,11 @@ class SlipGajiController extends Controller
         $slip = SlipGajiBuilder::buildFromValidated($validated, $employee);
         $saved = SlipGajiBuilder::saveSlip($slip, $employee);
 
-        return redirect()->route('review.show', $saved)
-            ->with('success', "Slip gaji {$employee->name} berhasil disimpan.");
+        $message = $saved->wasRecentlyCreated
+            ? "Slip gaji {$employee->name} berhasil dibuat."
+            : "Slip gaji {$employee->name} berhasil diperbarui.";
+
+        return redirect()->route('review.show', $saved)->with('success', $message);
     }
 
     public function preview(Request $request): View
@@ -47,7 +87,17 @@ class SlipGajiController extends Controller
         $slip = SlipGajiBuilder::buildFromValidated($validated, $employee);
         $slip = SlipGajiBuilder::attachQrSignature($slip);
 
-        return view('slip.preview', compact('slip'));
+        $flashData = $validated;
+        if ($request->filled('_editing_slip_id')) {
+            $flashData['_editing_slip_id'] = $request->input('_editing_slip_id');
+        }
+        $request->session()->flashInput($flashData);
+
+        $returnUrl = $request->filled('_editing_slip_id')
+            ? route('slip.edit', $request->input('_editing_slip_id'))
+            : route('slip.create');
+
+        return view('slip.preview', compact('slip', 'returnUrl'));
     }
 
     private function validateSlip(Request $request): array
@@ -68,6 +118,7 @@ class SlipGajiController extends Controller
             'tunj_konsumsi' => 'nullable|numeric|min:0',
             'pot_angsuran' => 'nullable|numeric|min:0',
             'pot_kasbon' => 'nullable|numeric|min:0',
+            'pot_lain_lain' => 'nullable|numeric|min:0',
             'jumlah_kehadiran' => 'required|integer|min:0',
             'hadir' => 'required|integer|min:0',
             'sakit_izin' => 'nullable|integer|min:0',
