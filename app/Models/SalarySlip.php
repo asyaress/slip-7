@@ -106,6 +106,7 @@ class SalarySlip extends Model
             'employee' => [
                 'id' => $employee->id,
                 'nomor' => $employee->nomor,
+                'nip' => \App\Services\NipService::forEmployee($employee),
                 'name' => $employee->name,
                 'email' => $employee->email,
                 'jabatan' => $employee->jabatan,

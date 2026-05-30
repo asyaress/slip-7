@@ -14,10 +14,11 @@
             <thead class="bg-slate-50 text-slate-600">
                 <tr>
                     <th class="text-left px-6 py-3 font-medium">No</th>
+                    <th class="text-left px-6 py-3 font-medium">NIP</th>
                     <th class="text-left px-6 py-3 font-medium">Nama</th>
                     <th class="text-left px-6 py-3 font-medium">Jabatan</th>
                     <th class="text-left px-6 py-3 font-medium">Email</th>
-                    <th class="text-left px-6 py-3 font-medium">Tgl Masuk</th>
+                    <th class="text-left px-6 py-3 font-medium">Mulai Bekerja</th>
                     <th class="text-left px-6 py-3 font-medium">Masa Kerja</th>
                     <th class="text-left px-6 py-3 font-medium">Status</th>
                     <th class="text-right px-6 py-3 font-medium">Aksi</th>
@@ -27,6 +28,7 @@
                 @foreach($employees as $employee)
                 <tr class="hover:bg-slate-50/80">
                     <td class="px-6 py-3.5 text-slate-500">{{ $employee->nomor }}</td>
+                    <td class="px-6 py-3.5 text-slate-600 whitespace-nowrap font-mono text-xs">{{ $employee->resolvedNip() ?? '—' }}</td>
                     <td class="px-6 py-3.5 font-medium text-slate-900">{{ $employee->name }}</td>
                     <td class="px-6 py-3.5 text-slate-600">{{ $employee->jabatan }}</td>
                     <td class="px-6 py-3.5 text-slate-600">{{ $employee->email }}</td>

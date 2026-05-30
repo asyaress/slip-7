@@ -17,13 +17,20 @@
                     <td class="colon">:</td>
                     <td><strong>{{ $slip['employee']['name'] }}</strong></td>
                 </tr>
+                @if(!empty($slip['employee']['nip']))
+                <tr>
+                    <td class="label">NIP</td>
+                    <td class="colon">:</td>
+                    <td style="font-family: 'Courier New', Courier, monospace; font-size: 10pt;">{{ $slip['employee']['nip'] }}</td>
+                </tr>
+                @endif
                 <tr>
                     <td class="label">Jabatan</td>
                     <td class="colon">:</td>
                     <td>{{ $slip['employee']['jabatan'] }}</td>
                 </tr>
                 <tr>
-                    <td class="label">Tgl Masuk</td>
+                    <td class="label">Mulai Bekerja</td>
                     <td class="colon">:</td>
                     <td>{{ $slip['tgl_masuk'] }}</td>
                 </tr>

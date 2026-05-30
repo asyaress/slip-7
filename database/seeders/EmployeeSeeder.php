@@ -23,10 +23,13 @@ class EmployeeSeeder extends Seeder
             Employee::updateOrCreate(
                 ['nomor' => (int) $nomor],
                 [
+                    'nip' => $data['nip'] ?? null,
                     'name' => $data['name'],
                     'email' => strtolower(trim($data['email'])),
                     'jabatan' => $data['jabatan'],
                     'alamat' => $data['alamat'] ?? 'Samarinda',
+                    'tgl_lahir' => $data['tgl_lahir'] ?? null,
+                    'jenis_kelamin' => $data['jenis_kelamin'] ?? null,
                     'tgl_masuk' => $data['tgl_masuk'],
                     'is_active' => $data['is_active'] ?? true,
                 ]

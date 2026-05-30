@@ -28,11 +28,22 @@ class EmployeeController extends Controller
             'email' => 'required|email|max:255',
             'jabatan' => 'required|string|max:255',
             'alamat' => 'required|string|max:255',
+            'tgl_lahir' => 'nullable|date',
+            'jenis_kelamin' => 'nullable|in:LAKI-LAKI,PEREMPUAN',
             'tgl_masuk' => 'required|date',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+
+        $tglLahir = $validated['tgl_lahir'] ?? $employee->tgl_lahir?->format('Y-m-d');
+        if ($tglLahir) {
+            $validated['nip'] = \App\Services\NipService::generate(
+                $employee->nomor,
+                $validated['tgl_masuk'],
+                $tglLahir,
+            );
+        }
 
         $employee->update($validated);
 
