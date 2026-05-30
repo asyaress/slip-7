@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Services\SlipGajiBuilder;
+use BaconQrCode\Writer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,8 @@ class DebugController extends Controller
             'storage_writable' => is_writable(storage_path()),
             'bootstrap_cache_writable' => is_writable(base_path('bootstrap/cache')),
             'public_storage_link' => is_link(public_path('storage')),
+            'signatures_writable' => is_writable(Storage::disk('public')->path('signatures')) || is_writable(Storage::disk('public')->path('')),
+            'php_qr' => class_exists(Writer::class),
             'kop_png' => file_exists(public_path('images/kop.png')),
             'logo_png' => file_exists(public_path('images/logo_m.png')),
             'qr_script' => file_exists(base_path('scripts/generate_qr_signature.py')),
