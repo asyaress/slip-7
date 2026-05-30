@@ -223,6 +223,7 @@
 
         .signature-section {
             margin-top: 16px;
+            clear: both;
         }
 
         .signature-place-date {
@@ -231,17 +232,16 @@
             font-size: 10pt;
         }
 
-        .signature-table {
-            width: auto;
-            margin-left: auto;
-            border-collapse: collapse;
+        .signature-wrap {
+            width: 100%;
+            text-align: right;
         }
 
         .signature-cell {
-            width: 300px;
-            min-width: 300px;
+            display: inline-block;
+            width: 320px;
+            max-width: 100%;
             text-align: center;
-            vertical-align: top;
             page-break-inside: avoid;
         }
 
@@ -272,11 +272,7 @@
             text-decoration: underline;
             line-height: 1.35;
             text-align: center;
-        }
-
-        .signature-name-main,
-        .signature-name-suffix {
-            display: inline-block;
+            white-space: nowrap;
         }
     </style>
 </head>

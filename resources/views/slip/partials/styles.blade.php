@@ -227,6 +227,7 @@
 
     .slip-page .signature-section {
         margin-top: 32px;
+        clear: both;
     }
 
     .slip-page .signature-place-date {
@@ -235,23 +236,16 @@
         font-size: 11pt;
     }
 
-    .slip-page .signature-row {
+    .slip-page .signature-wrap {
+        display: flex;
+        justify-content: flex-end;
         width: 100%;
-        text-align: right;
     }
 
-    .slip-page .signature-table {
-        width: auto;
-        margin-left: auto;
-        border-collapse: collapse;
-    }
-
-    .slip-page .signature-cell,
-    .slip-page .signature-block {
-        width: 300px;
-        min-width: 300px;
+    .slip-page .signature-cell {
+        width: 320px;
+        max-width: 100%;
         text-align: center;
-        vertical-align: top;
     }
 
     .slip-page .signature-role {
@@ -290,5 +284,6 @@
         text-underline-offset: 3px;
         line-height: 1.4;
         text-align: center;
+        white-space: nowrap;
     }
 </style>
