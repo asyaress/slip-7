@@ -187,21 +187,37 @@
 
         <p class="closing-text">Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
 
+        @php
+            $directorTitle = config('employees.director.title');
+            $directorName = config('employees.director.name');
+            if (preg_match('/^(.+?)\s+(S\.Kom\.)$/i', $directorName, $directorParts)) {
+                $directorNameMain = $directorParts[1];
+                $directorNameSuffix = $directorParts[2];
+            } else {
+                $directorNameMain = $directorName;
+                $directorNameSuffix = null;
+            }
+        @endphp
+
         <div class="signature-section">
             <p class="signature-place-date">{{ config('company.location') }}, {{ $slip['tanggal_cetak'] }}</p>
 
-            <div class="signature-row">
-                <div class="signature-block">
-                    <p class="signature-role">{{ config('employees.director.title') }},</p>
-                    <div class="signature-area">
-                        @php $qrSrc = ($images ?? [])['qr'] ?? ($slip['qr_signature_url'] ?? null); @endphp
-                        @if(!empty($qrSrc))
-                            <img src="{{ $qrSrc }}" alt="QR Dokumen" class="qr-image">
-                        @endif
-                    </div>
-                    <p class="signature-name">{{ config('employees.director.name') }}</p>
-                </div>
-            </div>
+            <table class="signature-table" cellpadding="0" cellspacing="0" align="right">
+                <tr>
+                    <td class="signature-cell" align="center">
+                        <p class="signature-role">{{ $directorTitle }},</p>
+                        <div class="signature-area">
+                            @php $qrSrc = ($images ?? [])['qr'] ?? ($slip['qr_signature_url'] ?? null); @endphp
+                            @if(!empty($qrSrc))
+                                <img src="{{ $qrSrc }}" alt="QR Dokumen" class="qr-image">
+                            @endif
+                        </div>
+                        <p class="signature-name">
+                            <span class="signature-name-main">{{ $directorNameMain }}</span>@if($directorNameSuffix)<br><span class="signature-name-suffix">{{ $directorNameSuffix }}</span>@endif
+                        </p>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>

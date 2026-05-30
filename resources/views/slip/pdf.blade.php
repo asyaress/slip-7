@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 0.85cm 1.1cm;
+            margin: 1.15cm 1.35cm;
         }
 
         * {
@@ -19,8 +19,8 @@
             padding: 0;
             background: white;
             font-family: 'DejaVu Serif', serif;
-            font-size: 9pt;
-            line-height: 1.28;
+            font-size: 10pt;
+            line-height: 1.38;
             color: #1a1a1a;
         }
 
@@ -34,32 +34,32 @@
 
         .slip-kop {
             width: 100%;
-            max-height: 64px;
+            max-height: 78px;
             object-fit: contain;
             object-position: center top;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .doc-title {
             text-align: center;
             font-weight: bold;
-            font-size: 11pt;
-            letter-spacing: 0.3px;
+            font-size: 12pt;
+            letter-spacing: 0.4px;
             text-decoration: underline;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             color: #42091a;
         }
 
         .doc-number {
             text-align: center;
-            font-size: 9pt;
+            font-size: 10pt;
             color: #444;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .opening-text {
             text-align: justify;
-            margin: 0 0 8px;
+            margin: 0 0 10px;
         }
 
         table.info {
@@ -68,63 +68,66 @@
         }
 
         table.info td {
-            padding: 1px 6px 1px 0;
+            padding: 2px 8px 2px 0;
             vertical-align: top;
+            line-height: 1.35;
         }
 
         table.info td.label {
-            width: 95px;
+            width: 100px;
             font-weight: 500;
             white-space: nowrap;
         }
 
         table.info td.colon {
-            width: 10px;
+            width: 12px;
         }
 
         .employee-box {
             border: 1px solid #d1d5db;
             background: #fafafa;
-            padding: 6px 10px;
-            margin: 6px 0 8px;
+            padding: 8px 12px;
+            margin: 8px 0 10px;
         }
 
         .attendance-box {
             border: 1px solid #781a38;
-            border-left: 3px solid #781a38;
+            border-left: 4px solid #781a38;
             background: #fdf2f4;
-            padding: 5px 8px;
-            margin: 6px 0 8px;
-            font-size: 9pt;
+            padding: 7px 10px;
+            margin: 8px 0 10px;
+            font-size: 9.5pt;
+            line-height: 1.35;
         }
 
         .section-title {
             font-weight: bold;
-            font-size: 9.5pt;
+            font-size: 10pt;
             color: #42091a;
-            margin: 6px 0 2px;
-            padding-bottom: 2px;
+            margin: 10px 0 4px;
+            padding-bottom: 3px;
             border-bottom: 1px solid #e5e7eb;
         }
 
         table.gaji {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
         table.gaji td {
-            padding: 2px 4px;
+            padding: 3px 6px;
             vertical-align: middle;
             border-bottom: 1px solid #f0f0f0;
-            font-size: 9pt;
+            font-size: 9.5pt;
+            line-height: 1.35;
         }
 
         table.gaji tr.subtotal td {
-            border-top: 1px solid #333;
+            border-top: 1.5px solid #333;
             border-bottom: none;
             font-weight: bold;
-            padding-top: 3px;
+            padding-top: 5px;
         }
 
         table.gaji tr.section-header td {
@@ -132,24 +135,25 @@
             background: #f9fafb;
             border-bottom: 1px solid #e5e7eb;
             color: #42091a;
-            padding-top: 4px;
+            padding-top: 6px;
         }
 
         .amount {
             text-align: right;
             white-space: nowrap;
+            width: 105px;
         }
 
         .unit-label {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #666;
-            width: 72px;
+            width: 78px;
             white-space: nowrap;
         }
 
         .highlight {
             background-color: #fef08a;
-            padding: 1px 4px;
+            padding: 2px 6px;
             font-weight: bold;
         }
 
@@ -158,13 +162,14 @@
             display: table;
             width: 100%;
             font-weight: bold;
+            table-layout: fixed;
         }
 
         .thp-box {
             background: #fdf2f4;
-            border: 1px solid #781a38;
-            padding: 5px 8px;
-            margin: 6px 0;
+            border: 1.5px solid #781a38;
+            padding: 7px 10px;
+            margin: 8px 0;
         }
 
         .thp-box > span,
@@ -173,21 +178,32 @@
             vertical-align: middle;
         }
 
+        .thp-box > span:first-child {
+            width: 62%;
+            padding-right: 10px;
+            line-height: 1.35;
+        }
+
         .thp-box .thp-amount {
             text-align: right;
             white-space: nowrap;
-            font-size: 10pt;
+            font-size: 11pt;
             color: #42091a;
             background: #fef08a;
-            padding: 2px 6px;
+            padding: 3px 8px;
         }
 
         .total-pendapatan {
             background: #f3f4f6;
             border: 1px solid #d1d5db;
-            padding: 5px 8px;
-            margin: 6px 0;
-            font-size: 9.5pt;
+            padding: 7px 10px;
+            margin: 8px 0;
+            font-size: 10pt;
+        }
+
+        .total-pendapatan > span:first-child {
+            width: 62%;
+            padding-right: 10px;
         }
 
         .total-pendapatan > span:last-child {
@@ -200,59 +216,67 @@
         }
 
         .closing-text {
-            margin: 8px 0 0;
+            margin: 12px 0 0;
             text-align: justify;
+            line-height: 1.4;
         }
 
         .signature-section {
-            margin-top: 8px;
+            margin-top: 16px;
         }
 
         .signature-place-date {
             text-align: right;
-            margin: 0 0 6px;
-            font-size: 9.5pt;
+            margin: 0 0 10px;
+            font-size: 10pt;
         }
 
-        .signature-row {
-            width: 100%;
-            text-align: right;
+        .signature-table {
+            width: auto;
+            margin-left: auto;
+            border-collapse: collapse;
         }
 
-        .signature-block {
-            display: inline-block;
-            width: 220px;
+        .signature-cell {
+            width: 300px;
+            min-width: 300px;
             text-align: center;
+            vertical-align: top;
             page-break-inside: avoid;
         }
 
         .signature-role {
-            margin: 0 0 4px;
-            font-size: 9.5pt;
-            line-height: 1.25;
+            margin: 0 0 6px;
+            font-size: 10pt;
+            line-height: 1.35;
             text-align: center;
         }
 
         .signature-area {
             width: 100%;
-            height: 64px;
+            height: 72px;
             text-align: center;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .qr-image {
-            width: 60px;
-            height: 60px;
+            width: 68px;
+            height: 68px;
             object-fit: contain;
         }
 
         .signature-name {
             margin: 0;
             font-weight: bold;
-            font-size: 9.5pt;
+            font-size: 10pt;
             text-decoration: underline;
-            line-height: 1.25;
+            line-height: 1.35;
             text-align: center;
+        }
+
+        .signature-name-main,
+        .signature-name-suffix {
+            display: inline-block;
         }
     </style>
 </head>

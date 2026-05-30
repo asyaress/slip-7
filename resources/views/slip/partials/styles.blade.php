@@ -240,9 +240,16 @@
         text-align: right;
     }
 
+    .slip-page .signature-table {
+        width: auto;
+        margin-left: auto;
+        border-collapse: collapse;
+    }
+
+    .slip-page .signature-cell,
     .slip-page .signature-block {
-        display: inline-block;
-        width: 240px;
+        width: 300px;
+        min-width: 300px;
         text-align: center;
         vertical-align: top;
     }
