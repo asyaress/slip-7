@@ -46,9 +46,9 @@ class DashboardAnalytics
             'total_potongan' => $slips->sum('total_potongan'),
             'total_fasilitas' => $slips->sum('total_fasilitas'),
             'total_thp' => $slips->sum('take_home_pay'),
-            'total_pendapatan' => $slips->sum('total_pendapatan'),
+            'total_pendapatan' => $slips->sum(fn ($s) => $s->resolvedTotalPendapatan()),
             'rata_thp' => $count > 0 ? $slips->avg('take_home_pay') : 0,
-            'rata_pendapatan' => $count > 0 ? $slips->avg('total_pendapatan') : 0,
+            'rata_pendapatan' => $count > 0 ? $slips->avg(fn ($s) => $s->resolvedTotalPendapatan()) : 0,
         ];
 
         $emailStats = [
@@ -116,7 +116,7 @@ class DashboardAnalytics
         return [
             'labels' => $slips->map(fn ($s) => self::shortName($s->employee->name))->values()->all(),
             'values' => $slips->map(fn ($s) => round($s->take_home_pay))->values()->all(),
-            'pendapatan' => $slips->map(fn ($s) => round($s->total_pendapatan))->values()->all(),
+            'pendapatan' => $slips->map(fn ($s) => round($s->resolvedTotalPendapatan()))->values()->all(),
         ];
     }
 
@@ -187,7 +187,7 @@ class DashboardAnalytics
                 ->get();
 
             $thpValues[] = round($monthSlips->sum('take_home_pay'));
-            $pendapatanValues[] = round($monthSlips->sum('total_pendapatan'));
+            $pendapatanValues[] = round($monthSlips->sum(fn ($s) => $s->resolvedTotalPendapatan()));
             $slipCounts[] = $monthSlips->count();
 
             $cursor->addMonth();

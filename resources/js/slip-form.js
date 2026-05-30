@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const existingNotice = document.getElementById('existing-slip-notice');
     const saveButton = document.getElementById('btn-save-slip');
     const existingUrl = root?.dataset.existingUrl;
+    const lemburWeeksUrl = root?.dataset.lemburWeeksUrl;
     const preserveForm = root?.dataset.preserveForm === '1';
 
     const rupiahFields = [
@@ -23,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const numberFields = [
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
     ];
+
+    function formatNominalInput(value) {
+        const num = parseFloat(value) || 0;
+        return num > 0 ? Math.round(num).toLocaleString('id-ID') : '';
+    }
 
     function updateEmployeeInfo() {
         const opt = employeeSelect.selectedOptions[0];
@@ -42,8 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (el.classList.contains('rupiah-input')) {
-            const num = parseFloat(value) || 0;
-            el.value = num > 0 ? Math.round(num).toLocaleString('id-ID') : '';
+            el.value = formatNominalInput(value);
         } else {
             el.value = value ?? '';
         }
@@ -53,6 +58,71 @@ document.addEventListener('DOMContentLoaded', () => {
         rupiahFields.forEach(field => setFieldValue(field, data[field] ?? 0));
         numberFields.forEach(field => setFieldValue(field, data[field] ?? 0));
         calculate();
+    }
+
+    function renderLemburRows(weeks) {
+        const container = document.getElementById('lembur-rows');
+        if (!container || !Array.isArray(weeks)) {
+            return;
+        }
+
+        container.innerHTML = weeks.map((week, index) => {
+            const status = week.status === 'sudah_dibayar' ? 'sudah_dibayar' : 'belum_dibayar';
+
+            return `
+            <div class="lembur-row grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                <div class="sm:col-span-1 text-sm font-medium text-slate-500">${week.minggu}</div>
+                <div class="sm:col-span-4 text-sm text-slate-700">
+                    ${week.periode}
+                    <input type="hidden" name="lembur[${index}][minggu]" value="${week.minggu}">
+                    <input type="hidden" name="lembur[${index}][periode]" value="${week.periode}">
+                </div>
+                <div class="sm:col-span-4 rupiah-field">
+                    <span class="rupiah-prefix">Rp</span>
+                    <input type="text" inputmode="numeric"
+                        name="lembur[${index}][nominal]"
+                        value="${formatNominalInput(week.nominal ?? 0)}"
+                        placeholder="0"
+                        class="rupiah-input lembur-input">
+                </div>
+                <div class="sm:col-span-3">
+                    <select name="lembur[${index}][status]" class="select-field text-sm lembur-status">
+                        <option value="belum_dibayar"${status === 'belum_dibayar' ? ' selected' : ''}>Belum Dibayar</option>
+                        <option value="sudah_dibayar"${status === 'sudah_dibayar' ? ' selected' : ''}>Sudah Dibayar</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        }).join('');
+
+        initRupiahInputs(container);
+        bindLemburInputs();
+        calculate();
+    }
+
+    async function fetchLemburWeeks() {
+        const bulan = bulanSelect?.value;
+        const tahun = tahunInput?.value;
+
+        if (!lemburWeeksUrl || !bulan || !tahun) {
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams({ bulan, tahun });
+            const response = await fetch(`${lemburWeeksUrl}?${params.toString()}`, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const result = await response.json();
+            renderLemburRows(result.weeks ?? []);
+        } catch {
+            // ignore fetch errors
+        }
     }
 
     function setEditMode(isEdit) {
@@ -71,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!existingUrl || !employeeId || !bulan || !tahun) {
             setEditMode(false);
-            return;
+            return false;
         }
 
         try {
@@ -81,29 +151,41 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                return;
+                return false;
             }
 
             const result = await response.json();
 
             if (result.exists && result.data) {
                 fillForm(result.data);
+                if (result.lembur_weeks) {
+                    renderLemburRows(result.lembur_weeks);
+                }
                 setEditMode(true);
-            } else {
-                setEditMode(false);
+                return true;
             }
+
+            setEditMode(false);
+            return false;
         } catch {
-            // ignore fetch errors
+            return false;
+        }
+    }
+
+    async function onPeriodChange() {
+        const found = await checkExistingSlip();
+        if (!found) {
+            await fetchLemburWeeks();
         }
     }
 
     employeeSelect.addEventListener('change', () => {
         updateEmployeeInfo();
-        checkExistingSlip();
+        onPeriodChange();
     });
-    bulanSelect?.addEventListener('change', checkExistingSlip);
-    tahunInput?.addEventListener('change', checkExistingSlip);
-    tahunInput?.addEventListener('input', checkExistingSlip);
+    bulanSelect?.addEventListener('change', onPeriodChange);
+    tahunInput?.addEventListener('change', onPeriodChange);
+    tahunInput?.addEventListener('input', onPeriodChange);
 
     updateEmployeeInfo();
 
@@ -112,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             !!document.querySelector('[name="_editing_slip_id"]')
             || saveButton?.textContent.includes('Perbarui')
         );
+        calculate();
     } else {
         const initialFormRaw = root?.dataset.initialForm;
         if (initialFormRaw) {
@@ -122,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // ignore invalid JSON
             }
         } else if (employeeSelect?.value && bulanSelect?.value && tahunInput?.value) {
-            checkExistingSlip();
+            onPeriodChange();
         } else if (saveButton?.textContent.includes('Perbarui')) {
             setEditMode(true);
         }
@@ -141,19 +224,46 @@ document.addEventListener('DOMContentLoaded', () => {
         return ids.reduce((sum, id) => sum + parseRupiah(document.getElementById(id)?.value), 0);
     }
 
+    function calculateLembur() {
+        return Array.from(document.querySelectorAll('.lembur-input'))
+            .reduce((sum, el) => sum + parseRupiah(el.value), 0);
+    }
+
+    function updateLemburSummary(totalLembur) {
+        const formatted = formatRupiahDisplay(totalLembur);
+        const summaryLembur = document.getElementById('summary-lembur');
+        const summaryLemburSidebar = document.getElementById('summary-lembur-sidebar');
+
+        if (summaryLembur) {
+            summaryLembur.textContent = formatted;
+        }
+        if (summaryLemburSidebar) {
+            summaryLemburSidebar.textContent = formatted;
+        }
+    }
+
     function calculate() {
         const gajiPokok = parseRupiah(document.getElementById('gaji_pokok')?.value);
         const totalTunj = sumFields(tunjanganIds);
         const totalPotongan = sumFields(potonganIds);
         const thp = gajiPokok + totalTunj - totalPotongan;
         const totalFasilitas = sumFields(fasilitasIds);
-        const totalPendapatan = thp + totalFasilitas;
+        const totalLembur = calculateLembur();
+        const totalPendapatan = thp + totalFasilitas + totalLembur;
 
         document.getElementById('summary-tunj').textContent = formatRupiahDisplay(totalTunj);
         document.getElementById('summary-potongan').textContent = formatRupiahDisplay(totalPotongan);
         document.getElementById('summary-thp').textContent = formatRupiahDisplay(thp);
         document.getElementById('summary-fasilitas').textContent = formatRupiahDisplay(totalFasilitas);
+        updateLemburSummary(totalLembur);
         document.getElementById('summary-total').textContent = formatRupiahDisplay(totalPendapatan);
+    }
+
+    function bindLemburInputs() {
+        document.querySelectorAll('.lembur-input').forEach(el => {
+            el.addEventListener('input', calculate);
+            el.addEventListener('rupiah-change', calculate);
+        });
     }
 
     window.slipFormCalculate = calculate;
@@ -163,5 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('rupiah-change', calculate);
     });
 
+    bindLemburInputs();
     calculate();
 });

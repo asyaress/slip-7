@@ -35,6 +35,7 @@
 @section('content')
 <div id="slip-form-root"
      data-existing-url="{{ route('slip.existing') }}"
+     data-lembur-weeks-url="{{ route('slip.lembur-weeks') }}"
      @if($preserveForm) data-preserve-form="1" @elseif(!empty($formData)) data-initial-form='@json($formData)' @endif
      class="grid lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2">
@@ -233,6 +234,8 @@
                 </div>
             </section>
 
+            @include('slip.partials.lembur-form', ['lemburWeeks' => $lemburWeeks ?? []])
+
             <div class="flex flex-wrap gap-3">
                 <button type="submit" formaction="{{ route('slip.store') }}" id="btn-save-slip" class="btn-primary">
                     {{ isset($editingSlip) ? 'Perbarui Slip Gaji' : 'Simpan & Generate Slip' }}
@@ -265,13 +268,17 @@
                     <dt class="text-slate-500">Total Fasilitas</dt>
                     <dd id="summary-fasilitas" class="font-medium">Rp 0</dd>
                 </div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Total Lembur</dt>
+                    <dd id="summary-lembur-sidebar" class="font-medium text-amber-700">Rp 0</dd>
+                </div>
                 <div class="border-t border-slate-200 pt-3 flex justify-between">
                     <dt class="text-slate-900 font-semibold">Total Pendapatan</dt>
-                    <dd id="summary-total" class="font-bold text-green-600">Rp 0</dd>
+                    <dd id="summary-total" class="font-bold text-green-600 text-lg">Rp 0</dd>
                 </div>
             </dl>
             <p class="mt-4 text-xs text-slate-400">
-                THP = Gaji Pokok + Total Tunjangan − Potongan
+                Total Pendapatan = THP + Fasilitas + Lembur
             </p>
         </div>
     </div>

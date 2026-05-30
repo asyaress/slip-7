@@ -42,11 +42,13 @@ class SlipGajiBuilder
             'bpjs_kesehatan' => (float) ($validated['bpjs_kesehatan'] ?? 186222),
             'makan_siang_malam' => (float) ($validated['makan_siang_malam'] ?? 0),
             'pensiun' => (float) ($validated['pensiun'] ?? 0),
+            'lembur' => $validated['lembur'] ?? ['weeks' => [], 'total' => 0],
+            'total_lembur' => (float) ($validated['lembur']['total'] ?? 0),
             'total_tunjangan' => $calculation['total_tunjangan'],
             'total_potongan' => $calculation['total_potongan'],
             'take_home_pay' => $calculation['take_home_pay'],
             'total_fasilitas' => $calculation['total_fasilitas'],
-            'total_pendapatan' => $calculation['total_pendapatan'],
+            'total_pendapatan' => $calculation['total_pendapatan'] + (float) ($validated['lembur']['total'] ?? 0),
             'signatory' => config('employees.signatory'),
         ];
     }
@@ -67,6 +69,8 @@ class SlipGajiBuilder
                 'bpjs_kesehatan' => $slip['bpjs_kesehatan'],
                 'makan_siang_malam' => $slip['makan_siang_malam'],
                 'pensiun' => $slip['pensiun'],
+                'lembur' => $slip['lembur'] ?? ['weeks' => [], 'total' => 0],
+                'total_lembur' => $slip['total_lembur'] ?? 0,
                 'jumlah_kehadiran' => $slip['jumlah_kehadiran'],
                 'hadir' => $slip['hadir'],
                 'sakit_izin' => $slip['sakit_izin'],

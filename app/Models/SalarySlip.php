@@ -11,6 +11,7 @@ class SalarySlip extends Model
         'employee_id', 'bulan', 'tahun', 'nomor_surat',
         'gaji_pokok', 'tunjangan', 'potongan',
         'bpjs_kesehatan', 'makan_siang_malam', 'pensiun',
+        'lembur', 'total_lembur',
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
         'total_tunjangan', 'total_potongan', 'take_home_pay',
         'total_fasilitas', 'total_pendapatan',
@@ -26,6 +27,8 @@ class SalarySlip extends Model
             'bpjs_kesehatan' => 'float',
             'makan_siang_malam' => 'float',
             'pensiun' => 'float',
+            'lembur' => 'array',
+            'total_lembur' => 'float',
             'total_tunjangan' => 'float',
             'total_potongan' => 'float',
             'take_home_pay' => 'float',
@@ -51,6 +54,11 @@ class SalarySlip extends Model
     public function periodeLabel(): string
     {
         return strtoupper($this->namaBulan()).' '.$this->tahun;
+    }
+
+    public function resolvedTotalPendapatan(): float
+    {
+        return $this->take_home_pay + $this->total_fasilitas + ($this->total_lembur ?? 0);
     }
 
     public function isEmailSent(): bool
@@ -85,6 +93,7 @@ class SalarySlip extends Model
             'bpjs_kesehatan' => $this->bpjs_kesehatan,
             'makan_siang_malam' => $this->makan_siang_malam,
             'pensiun' => $this->pensiun,
+            'lembur' => $this->lembur,
         ];
     }
 
@@ -120,11 +129,13 @@ class SalarySlip extends Model
             'bpjs_kesehatan' => $this->bpjs_kesehatan,
             'makan_siang_malam' => $this->makan_siang_malam,
             'pensiun' => $this->pensiun,
+            'lembur' => $this->lembur ?? ['weeks' => [], 'total' => 0],
+            'total_lembur' => $this->total_lembur ?? 0,
             'total_tunjangan' => $this->total_tunjangan,
             'total_potongan' => $this->total_potongan,
             'take_home_pay' => $this->take_home_pay,
             'total_fasilitas' => $this->total_fasilitas,
-            'total_pendapatan' => $this->total_pendapatan,
+            'total_pendapatan' => $this->resolvedTotalPendapatan(),
             'signatory' => config('employees.signatory'),
             'email_sent_at' => $this->email_sent_at,
             'email_status' => $this->email_status,

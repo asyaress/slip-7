@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\SalarySlip;
+use App\Services\LemburWeekService;
 use App\Services\SlipGajiBuilder;
 use App\Services\SlipGajiCalculator;
 use Illuminate\Http\JsonResponse;
@@ -25,8 +26,9 @@ class SlipGajiController extends Controller
     {
         $employees = Employee::where('is_active', true)->orderBy('nomor')->get();
         $preserveForm = ! empty(session()->getOldInput());
+        $lemburWeeks = $this->resolveLemburWeeks();
 
-        return view('slip.create', compact('employees', 'preserveForm'));
+        return view('slip.create', compact('employees', 'preserveForm', 'lemburWeeks'));
     }
 
     public function edit(SalarySlip $slip): View
@@ -36,8 +38,9 @@ class SlipGajiController extends Controller
         $editingSlip = $slip;
         $formData = $slip->toFormInputs();
         $preserveForm = ! empty(session()->getOldInput());
+        $lemburWeeks = $this->resolveLemburWeeks($slip);
 
-        return view('slip.create', compact('employees', 'editingSlip', 'formData', 'preserveForm'));
+        return view('slip.create', compact('employees', 'editingSlip', 'formData', 'preserveForm', 'lemburWeeks'));
     }
 
     public function existing(Request $request): JsonResponse
@@ -61,6 +64,26 @@ class SlipGajiController extends Controller
             'exists' => true,
             'slip_id' => $slip->id,
             'data' => $slip->toFormInputs(),
+            'lembur_weeks' => LemburWeekService::weeksForForm(
+                $slip->bulan,
+                $slip->tahun,
+                $slip->lembur
+            ),
+        ]);
+    }
+
+    public function lemburWeeks(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'bulan' => 'required|integer|min:1|max:12',
+            'tahun' => 'required|integer|min:2020|max:2100',
+        ]);
+
+        return response()->json([
+            'weeks' => LemburWeekService::weeksForForm(
+                (int) $validated['bulan'],
+                (int) $validated['tahun']
+            ),
         ]);
     }
 
@@ -88,6 +111,7 @@ class SlipGajiController extends Controller
         $slip = SlipGajiBuilder::attachQrSignature($slip);
 
         $flashData = $validated;
+        $flashData['lembur'] = $request->input('lembur');
         if ($request->filled('_editing_slip_id')) {
             $flashData['_editing_slip_id'] = $request->input('_editing_slip_id');
         }
@@ -103,8 +127,9 @@ class SlipGajiController extends Controller
     private function validateSlip(Request $request): array
     {
         $this->normalizeRupiahFields($request);
+        $this->normalizeLemburFields($request);
 
-        return $request->validate([
+        $validated = $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'bulan' => 'required|integer|min:1|max:12',
             'tahun' => 'required|integer|min:2020|max:2100',
@@ -126,7 +151,53 @@ class SlipGajiController extends Controller
             'bpjs_kesehatan' => 'nullable|numeric|min:0',
             'makan_siang_malam' => 'nullable|numeric|min:0',
             'pensiun' => 'nullable|numeric|min:0',
+            'lembur' => 'nullable|array',
+            'lembur.*.nominal' => 'nullable',
+            'lembur.*.minggu' => 'nullable|integer|min:1',
+            'lembur.*.periode' => 'nullable|string|max:50',
+            'lembur.*.status' => 'nullable|in:belum_dibayar,sudah_dibayar',
         ]);
+
+        $validated['lembur'] = LemburWeekService::fromRequest(
+            $request->input('lembur'),
+            (int) $validated['bulan'],
+            (int) $validated['tahun']
+        );
+
+        return $validated;
+    }
+
+    private function resolveLemburWeeks(?SalarySlip $editingSlip = null): array
+    {
+        $bulan = (int) old('bulan', $editingSlip?->bulan ?? now()->month);
+        $tahun = (int) old('tahun', $editingSlip?->tahun ?? now()->year);
+
+        return LemburWeekService::weeksForForm($bulan, $tahun, $editingSlip?->lembur);
+    }
+
+    private function normalizeLemburFields(Request $request): void
+    {
+        $lembur = $request->input('lembur');
+
+        if (! is_array($lembur)) {
+            return;
+        }
+
+        $normalized = [];
+
+        foreach ($lembur as $index => $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $normalized[$index] = $row;
+
+            if (isset($row['nominal'])) {
+                $normalized[$index]['nominal'] = SlipGajiCalculator::parseRupiah($row['nominal']);
+            }
+        }
+
+        $request->merge(['lembur' => $normalized]);
     }
 
     private function normalizeRupiahFields(Request $request): void

@@ -147,6 +147,32 @@
             </tr>
         </table>
 
+        @php
+            $lemburWeeks = $slip['lembur']['weeks'] ?? [];
+            $totalLembur = (float) ($slip['total_lembur'] ?? 0);
+        @endphp
+        @if($totalLembur > 0)
+        <div class="section-title">Lembur :</div>
+        <table class="gaji">
+            @foreach($lemburWeeks as $week)
+            @if(($week['nominal'] ?? 0) > 0)
+            <tr>
+                <td style="width:28px;">{{ $week['minggu'] }}.</td>
+                <td>Minggu {{ $week['minggu'] }} ({{ $week['periode'] }})</td>
+                <td style="width:12px;">:</td>
+                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($week['nominal']) }}</td>
+                <td class="unit-label">{{ \App\Services\LemburWeekService::statusLabel($week['status'] ?? null) }}</td>
+            </tr>
+            @endif
+            @endforeach
+            <tr class="subtotal">
+                <td colspan="3"></td>
+                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($totalLembur) }}</td>
+                <td class="unit-label">Total Lembur</td>
+            </tr>
+        </table>
+        @endif
+
         <div class="total-pendapatan">
             <span>Total Pendapatan Keseluruhan</span>
             <span>{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_pendapatan']) }}</span>

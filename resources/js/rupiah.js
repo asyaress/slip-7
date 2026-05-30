@@ -12,8 +12,13 @@ export function formatRupiahDisplay(num) {
     return 'Rp ' + formatRupiahNumber(num);
 }
 
-export function initRupiahInputs() {
-    document.querySelectorAll('.rupiah-input').forEach(input => {
+export function initRupiahInputs(root = document) {
+    root.querySelectorAll('.rupiah-input').forEach(input => {
+        if (input.dataset.rupiahBound === '1') {
+            return;
+        }
+        input.dataset.rupiahBound = '1';
+
         input.addEventListener('input', (e) => {
             const raw = parseRupiah(e.target.value);
             const pos = e.target.selectionStart;
