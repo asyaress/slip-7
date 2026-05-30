@@ -15,10 +15,10 @@
         <aside class="w-64 bg-maroon-950 text-white flex flex-col shrink-0 fixed inset-y-0 left-0 z-30">
             <div class="px-6 py-6 border-b border-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold text-sm">{{ config('company.short_name') }}</div>
-                    <div>
+                    <img src="{{ asset('images/logo_m.png') }}" alt="{{ config('company.short_name') }}" class="sidebar-logo">
+                    <div class="min-w-0">
                         <p class="font-bold text-sm leading-tight">Slip Gaji</p>
-                        <p class="text-xs text-white/60">{{ config('company.name') }}</p>
+                        <p class="text-xs text-white/60 truncate">{{ config('company.name') }}</p>
                     </div>
                 </div>
             </div>

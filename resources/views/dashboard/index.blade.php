@@ -74,9 +74,10 @@
         <p class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($attendance['hadir']) }} <span class="text-sm font-normal text-slate-400">hari hadir</span></p>
         <p class="text-xs text-slate-400 mt-1">Sakit/Izin {{ number_format($attendance['sakit_izin']) }} · Tidak hadir {{ number_format($attendance['tidak_hadir']) }}</p>
     </div>
-    <div class="card p-5 bg-maroon-950 text-white">
-        <p class="text-sm text-white/60">Periode Aktif</p>
-        <p class="text-xl font-bold mt-1">{{ $periode_label }}</p>
+    <div class="card-dark p-5">
+        <p class="text-xs font-medium uppercase tracking-wide text-white/70">Periode Aktif</p>
+        <p class="text-xl font-bold mt-1 text-white">{{ $periode_label }}</p>
+        <p class="text-xs text-white/50 mt-1">{{ $bulan }}/{{ $tahun }}</p>
         <a href="{{ route('review.index', ['bulan' => $bulan, 'tahun' => $tahun]) }}" class="inline-block mt-3 text-xs text-white/80 hover:text-white underline">Review slip periode ini →</a>
     </div>
 </div>

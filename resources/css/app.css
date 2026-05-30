@@ -79,6 +79,14 @@ button, a {
     @apply bg-white rounded-xl border border-slate-200 shadow-sm;
 }
 
+.card-dark {
+    @apply rounded-xl border border-maroon-900 bg-maroon-950 text-white shadow-sm;
+}
+
+.sidebar-logo {
+    @apply w-10 h-10 rounded-lg object-contain shrink-0 bg-white/5;
+}
+
 .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
 }
