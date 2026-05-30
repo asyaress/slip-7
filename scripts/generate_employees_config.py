@@ -77,7 +77,7 @@ def main() -> None:
         hire_month = str(ws.cell(r, 8).value).zfill(2)
         gender = str(ws.cell(r, 9).value).strip()
         address = ws.cell(r, 11).value
-        nip = f"TSG-15-{hire_year}-{birth_day}-{birth_month}-{birth_year}-{no:02d}"
+        nip = f"TSG15{hire_year}{birth_day}{birth_month}{birth_year}{no:02d}"
 
         email, jabatan = CONFIG_NAMES.get(name, (f"employee{no}@toedjoesinargroup.com", "Karyawan"))
         alamat = (address or "Samarinda").strip()
