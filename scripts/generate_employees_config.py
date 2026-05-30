@@ -8,7 +8,8 @@ EXCEL = Path(__file__).resolve().parents[2] / "NOMOR INDUK KARYAWAN TOEDJOE SINA
 
 EXCLUDE_NAMES = {"ELGI SAMSUDDIN"}
 
-CONFIG_NAMES = { ("sugynuansafx@gmail.com", "Kepala Maintenance Operator"),
+CONFIG_NAMES = {
+    "SUGIANTO": ("sugynuansafx@gmail.com", "Kepala Maintenance Operator"),
     "MUHAMMAD NOR DIANSYAH": ("Nurdinzds@gmail.com", "Kepala Operator Indoor"),
     "SRI WAHYUNI": ("uyung109@gmail.com", "Kepala Desainer"),
     "FELIX OCTAVIAN MAHENDRA": ("mahendrafelix@gmail.com", "Kepala Admin & Personalia"),
