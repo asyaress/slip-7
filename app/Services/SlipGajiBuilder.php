@@ -13,14 +13,15 @@ class SlipGajiBuilder
         $bulan = (int) $validated['bulan'];
         $tahun = (int) $validated['tahun'];
 
-        MonthlyTunjanganService::saveForPeriod(
-            $bulan,
-            $tahun,
-            $calculation['tunjangan_bulanan']
-        );
-
-        $validated['total_lembur'] = (float) ($validated['lembur']['total'] ?? 0);
         $calculation = SlipGajiCalculator::calculate($validated);
+
+        if (array_sum($calculation['tunjangan_bulanan']) > 0) {
+            MonthlyTunjanganService::saveForPeriod(
+                $bulan,
+                $tahun,
+                $calculation['tunjangan_bulanan']
+            );
+        }
         $namaBulan = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
 
         return [
