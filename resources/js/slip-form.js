@@ -349,7 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const tunjanganEarned = totalTunjHarian * hadir;
         const totalPotongan = sumFields(potonganIds);
         const totalLembur = calculateLembur();
-        const thp = gajiPokok + tunjanganEarned + totalLembur - totalPotongan;
+        const thp = gajiPokok + tunjanganEarned - totalPotongan;
+        const totalPendapatan = thp + totalLembur;
 
         const summaryTunjHarian = document.getElementById('summary-tunj-harian');
         const summaryTunjEarned = document.getElementById('summary-tunj-earned');
@@ -367,6 +368,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('summary-potongan').textContent = formatRupiahDisplay(totalPotongan);
         document.getElementById('summary-thp').textContent = formatRupiahDisplay(thp);
+        const summaryPendapatan = document.getElementById('summary-pendapatan');
+        if (summaryPendapatan) {
+            summaryPendapatan.textContent = formatRupiahDisplay(totalPendapatan);
+        }
         updateLemburSummary(totalLembur);
     }
 

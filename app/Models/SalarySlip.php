@@ -180,6 +180,13 @@ class SalarySlip extends Model
         $totalTunjanganHarian = array_sum($tunjanganHarian);
         $tunjanganEarned = $totalTunjanganHarian * (int) $this->hadir;
 
+        $totalLembur = (float) ($this->total_lembur ?? 0);
+        $resolvedPay = \App\Services\SlipGajiCalculator::resolveThpAndPendapatan(
+            (float) $this->take_home_pay,
+            $totalLembur,
+            (float) ($this->total_pendapatan ?? 0)
+        );
+
         $slip = [
             'id' => $this->id,
             'employee' => [
@@ -210,10 +217,11 @@ class SalarySlip extends Model
             'tidak_hadir' => $this->tidak_hadir,
             'fasilitas' => $this->resolvedFasilitas(),
             'lembur' => $this->lembur ?? ['weeks' => [], 'total' => 0],
-            'total_lembur' => $this->total_lembur ?? 0,
+            'total_lembur' => $totalLembur,
             'total_tunjangan' => $this->total_tunjangan ?: $totalTunjanganHarian,
             'total_potongan' => $this->total_potongan,
-            'take_home_pay' => $this->take_home_pay,
+            'take_home_pay' => $resolvedPay['take_home_pay'],
+            'total_pendapatan' => $resolvedPay['total_pendapatan'],
             'signatory' => config('employees.signatory'),
             'email_sent_at' => $this->email_sent_at,
             'email_status' => $this->email_status,

@@ -33,7 +33,7 @@
         <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
         <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Lembur</p>
         <p class="text-2xl font-bold text-amber-700 mt-2">{{ $fmt($financials['total_lembur']) }}</p>
-        <p class="text-xs text-slate-400 mt-1">Termasuk dalam THP</p>
+        <p class="text-xs text-slate-400 mt-1">THP + lembur = Total Pendapatan</p>
     </div>
     <div class="card p-5">
         <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Tunjangan</p>

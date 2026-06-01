@@ -272,9 +272,14 @@
                     <dt class="text-slate-900 font-semibold">Take Home Pay</dt>
                     <dd id="summary-thp" class="font-bold text-maroon-900 text-lg">Rp 0</dd>
                 </div>
+                <div class="flex justify-between pt-2">
+                    <dt class="text-slate-900 font-semibold">Total Pendapatan</dt>
+                    <dd id="summary-pendapatan" class="font-bold text-slate-900 text-lg">Rp 0</dd>
+                </div>
             </dl>
             <p class="mt-4 text-xs text-slate-400">
-                THP = Gaji Pokok + (Total Tunjangan/Hari × Hadir) + Lembur − Potongan
+                THP = Gaji Pokok + (Total Tunjangan/Hari × Hadir) − Potongan<br>
+                Total Pendapatan = THP + Lembur
             </p>
         </div>
     </div>

@@ -1,6 +1,6 @@
 <section class="card p-6 border-amber-100">
     <h2 class="text-base font-semibold text-slate-900 mb-1">8. Lembur</h2>
-    <p class="text-xs text-slate-500 mb-4">Per minggu (Senin–Sabtu). Nominal lembur masuk perhitungan THP.</p>
+    <p class="text-xs text-slate-500 mb-4">Per minggu (Senin–Sabtu). Lembur tidak masuk THP, dijumlahkan pada Total Pendapatan.</p>
 
     <div class="hidden sm:grid sm:grid-cols-12 gap-3 mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">
         <div class="sm:col-span-1">Minggu</div>

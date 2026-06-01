@@ -62,6 +62,7 @@ class SlipGajiBuilder
             'total_tunjangan' => $calculation['total_tunjangan'],
             'total_potongan' => $calculation['total_potongan'],
             'take_home_pay' => $calculation['take_home_pay'],
+            'total_pendapatan' => $calculation['total_pendapatan'],
             'signatory' => config('employees.signatory'),
         ];
     }
@@ -94,7 +95,7 @@ class SlipGajiBuilder
                 'total_potongan' => $slip['total_potongan'],
                 'take_home_pay' => $slip['take_home_pay'],
                 'total_fasilitas' => 0,
-                'total_pendapatan' => 0,
+                'total_pendapatan' => $slip['total_pendapatan'] ?? 0,
             ]
         );
 

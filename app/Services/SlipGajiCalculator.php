@@ -113,8 +113,9 @@ class SlipGajiCalculator
         ];
         $totalPotongan = array_sum($potongan);
 
-        // THP = Gaji Pokok + (Total Tunjangan per hari × Hari Hadir) + Lembur - Potongan
-        $takeHomePay = $gajiPokok + $tunjanganEarned + $totalLembur - $totalPotongan;
+        // THP = Gaji Pokok + (Total Tunjangan per hari × Hari Hadir) − Potongan (tanpa lembur)
+        $takeHomePay = $gajiPokok + $tunjanganEarned - $totalPotongan;
+        $totalPendapatan = $takeHomePay + $totalLembur;
 
         $fasilitas = self::normalizeFasilitas($data['fasilitas'] ?? []);
 
@@ -126,6 +127,7 @@ class SlipGajiCalculator
             'potongan' => $potongan,
             'total_potongan' => $totalPotongan,
             'take_home_pay' => $takeHomePay,
+            'total_pendapatan' => $totalPendapatan,
             'fasilitas' => $fasilitas,
         ];
     }
@@ -183,6 +185,25 @@ class SlipGajiCalculator
         }
 
         return $active;
+    }
+
+    /**
+     * @return array{take_home_pay: float, total_pendapatan: float}
+     */
+    public static function resolveThpAndPendapatan(float $storedThp, float $totalLembur, float $storedPendapatan): array
+    {
+        if ($storedPendapatan > 0) {
+            return [
+                'take_home_pay' => $storedThp,
+                'total_pendapatan' => $storedPendapatan,
+            ];
+        }
+
+        // Slip lama: take_home_pay sudah termasuk lembur
+        return [
+            'take_home_pay' => max(0, $storedThp - $totalLembur),
+            'total_pendapatan' => $storedThp,
+        ];
     }
 
     public static function formatRupiah(float|int $amount): string
