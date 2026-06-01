@@ -92,8 +92,7 @@ class DashboardAnalytics
 
     private static function isFailed(SalarySlip $slip): bool
     {
-        return $slip->email_status !== null
-            && str_starts_with($slip->email_status, 'failed');
+        return $slip->isEmailFailed();
     }
 
     private static function compositionChart(Collection $slips): array

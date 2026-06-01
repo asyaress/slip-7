@@ -92,8 +92,8 @@
                             @if($slip->isEmailSent())
                                 <span class="badge badge-success">Terkirim</span>
                                 <p class="text-xs text-slate-400 mt-1">{{ $slip->email_sent_at->format('d/m/Y H:i') }}</p>
-                            @elseif($slip->email_status && str_starts_with($slip->email_status, 'failed'))
-                                <span class="badge badge-warning">Gagal</span>
+                            @elseif($slip->isEmailFailed())
+                                <span class="badge badge-warning"@if($msg = $slip->emailFailureMessage()) title="{{ e($msg) }}"@endif>Gagal</span>
                             @else
                                 <span class="badge badge-muted">Belum</span>
                             @endif

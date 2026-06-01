@@ -15,7 +15,7 @@ class SalarySlip extends Model
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
         'total_tunjangan', 'total_potongan', 'take_home_pay',
         'total_fasilitas', 'total_pendapatan',
-        'email_sent_at', 'email_status',
+        'email_sent_at', 'email_status', 'email_error',
     ];
 
     protected function casts(): array
@@ -113,6 +113,29 @@ class SalarySlip extends Model
     public function isEmailSent(): bool
     {
         return $this->email_sent_at !== null && $this->email_status === 'sent';
+    }
+
+    public function isEmailFailed(): bool
+    {
+        if ($this->email_status === 'failed') {
+            return true;
+        }
+
+        return $this->email_status !== null
+            && str_starts_with($this->email_status, 'failed');
+    }
+
+    public function emailFailureMessage(): ?string
+    {
+        if (! empty($this->email_error)) {
+            return $this->email_error;
+        }
+
+        if ($this->isEmailFailed() && str_contains((string) $this->email_status, ':')) {
+            return trim(substr((string) $this->email_status, 7));
+        }
+
+        return null;
     }
 
     public function toFormInputs(): array

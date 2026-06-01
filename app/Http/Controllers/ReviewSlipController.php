@@ -83,10 +83,11 @@ class ReviewSlipController extends Controller
                 $slip->update([
                     'email_sent_at' => now(),
                     'email_status' => 'sent',
+                    'email_error' => null,
                 ]);
                 $sent++;
             } catch (\Throwable $e) {
-                $slip->update(['email_status' => 'failed: '.$e->getMessage()]);
+                $this->recordEmailFailure($slip, $e);
                 $failed++;
             }
         }
@@ -117,13 +118,23 @@ class ReviewSlipController extends Controller
             $slip->update([
                 'email_sent_at' => now(),
                 'email_status' => 'sent',
+                'email_error' => null,
             ]);
 
             return back()->with('success', "Slip berhasil dikirim ke {$slip->employee->email}");
         } catch (\Throwable $e) {
-            $slip->update(['email_status' => 'failed: '.$e->getMessage()]);
+            $this->recordEmailFailure($slip, $e);
 
             return back()->with('error', 'Gagal mengirim email: '.$e->getMessage());
         }
+    }
+
+    private function recordEmailFailure(SalarySlip $slip, \Throwable $e): void
+    {
+        $slip->update([
+            'email_status' => 'failed',
+            'email_error' => $e->getMessage(),
+            'email_sent_at' => null,
+        ]);
     }
 }
