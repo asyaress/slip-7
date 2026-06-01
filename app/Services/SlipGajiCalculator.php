@@ -155,6 +155,36 @@ class SlipGajiCalculator
         );
     }
 
+    /**
+     * @return array<string, array{label: string, amount: float}>
+     */
+    public static function resolveActiveTunjanganBulanan(array $slip): array
+    {
+        $active = [];
+        $tunjBulanan = $slip['tunjangan_bulanan'] ?? [];
+        $jumlahHariKerja = max(1, (int) ($slip['jumlah_kehadiran'] ?? 26));
+
+        foreach (config('slip.tunjangan', []) as $key => $label) {
+            $bulanan = (float) ($tunjBulanan[$key] ?? 0);
+
+            if ($bulanan <= 0) {
+                $harian = (float) ($slip['tunjangan'][$key] ?? 0);
+                if ($harian > 0) {
+                    $bulanan = $harian * $jumlahHariKerja;
+                }
+            }
+
+            if ($bulanan > 0) {
+                $active[$key] = [
+                    'label' => $label,
+                    'amount' => $bulanan,
+                ];
+            }
+        }
+
+        return $active;
+    }
+
     public static function formatRupiah(float|int $amount): string
     {
         return 'Rp '.number_format($amount, 0, ',', '.');

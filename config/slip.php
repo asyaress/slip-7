@@ -9,6 +9,10 @@ return [
         'perawatan' => 'Tunjangan Perawatan',
         'operator' => 'Tunjangan Operator',
         'konsumsi' => 'Tunjangan Konsumsi',
+        'desainer' => 'Tunjangan Desainer',
+        'administrasi' => 'Tunjangan Administrasi',
+        'finishing' => 'Tunjangan Finishing',
+        'pengambilan' => 'Tunjangan Pengambilan',
     ],
 
     'fasilitas' => [

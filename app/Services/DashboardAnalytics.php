@@ -11,16 +11,6 @@ class DashboardAnalytics
 {
     private const BULAN = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-    private const TUNJANGAN_LABELS = [
-        'transport' => 'Transport',
-        'kehadiran' => 'Kehadiran',
-        'kinerja' => 'Kinerja',
-        'jabatan' => 'Jabatan',
-        'perawatan' => 'Perawatan',
-        'operator' => 'Operator',
-        'konsumsi' => 'Konsumsi',
-    ];
-
     private const POTONGAN_LABELS = [
         'angsuran' => 'Angsuran',
         'kasbon' => 'Kasbon',
@@ -131,7 +121,8 @@ class DashboardAnalytics
 
     private static function tunjanganBreakdown(Collection $slips): array
     {
-        $totals = array_fill_keys(array_keys(self::TUNJANGAN_LABELS), 0.0);
+        $labels = config('slip.tunjangan', []);
+        $totals = array_fill_keys(array_keys($labels), 0.0);
 
         foreach ($slips as $slip) {
             foreach ($slip->tunjangan ?? [] as $key => $amount) {
@@ -141,10 +132,11 @@ class DashboardAnalytics
             }
         }
 
+        $totals = array_filter($totals, fn ($amount) => $amount > 0);
         arsort($totals);
 
         return [
-            'labels' => array_map(fn ($k) => self::TUNJANGAN_LABELS[$k], array_keys($totals)),
+            'labels' => array_map(fn ($k) => $labels[$k] ?? $k, array_keys($totals)),
             'values' => array_map(fn ($v) => round($v), array_values($totals)),
         ];
     }

@@ -65,37 +65,30 @@
                 <td class="amount highlight">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['gaji_pokok']) }}</td>
                 <td class="unit-label">Per - Bulan</td>
             </tr>
+            @php
+                $activeTunjangan = \App\Services\SlipGajiCalculator::resolveActiveTunjanganBulanan($slip);
+                $totalTunjBulanan = array_sum(array_column($activeTunjangan, 'amount'));
+                $no = 1;
+            @endphp
+            @if(!empty($activeTunjangan))
             <tr class="section-header">
                 <td colspan="5">Tunjangan</td>
             </tr>
-            @php
-                $tunjLabels = config('slip.tunjangan', []);
-                $tunjBulanan = $slip['tunjangan_bulanan'] ?? [];
-                $jumlahHariKerja = max(1, (int) ($slip['jumlah_kehadiran'] ?? 26));
-                foreach ($tunjLabels as $key => $label) {
-                    if (($tunjBulanan[$key] ?? 0) <= 0 && ($slip['tunjangan'][$key] ?? 0) > 0) {
-                        $tunjBulanan[$key] = (float) $slip['tunjangan'][$key] * $jumlahHariKerja;
-                    }
-                }
-                $totalTunjBulanan = array_sum($tunjBulanan);
-                $no = 1;
-            @endphp
-            @foreach($tunjLabels as $key => $label)
-            @if(($tunjBulanan[$key] ?? 0) > 0)
+            @foreach($activeTunjangan as $tunj)
             <tr>
                 <td>{{ $no++ }}.</td>
-                <td>{{ $label }}</td>
+                <td>{{ $tunj['label'] }}</td>
                 <td>:</td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($tunjBulanan[$key]) }}</td>
+                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($tunj['amount']) }}</td>
                 <td class="unit-label">Per - Bulan</td>
             </tr>
-            @endif
             @endforeach
             <tr class="subtotal">
                 <td colspan="3"></td>
                 <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($totalTunjBulanan) }}</td>
                 <td class="unit-label">Total / Bulan</td>
             </tr>
+            @endif
         </table>
 
         <div class="slip-section">
