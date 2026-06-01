@@ -89,9 +89,19 @@ class SalarySlip extends Model
 
     public function resolvedTunjanganHarian(): array
     {
+        $tunjangan = $this->tunjangan ?? [];
+        $daily = [];
+
+        foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
+            $daily[$key] = (float) ($tunjangan[$key] ?? 0);
+        }
+
+        if (array_sum($daily) > 0) {
+            return $daily;
+        }
+
         $monthly = $this->resolvedTunjanganBulanan();
         $days = max(1, (int) $this->jumlah_kehadiran);
-        $daily = [];
 
         foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
             $daily[$key] = ($monthly[$key] ?? 0) / $days;
@@ -109,6 +119,7 @@ class SalarySlip extends Model
     {
         $potongan = $this->potongan ?? [];
         $tunjanganBulanan = $this->resolvedTunjanganBulanan();
+        $tunjanganHarian = $this->resolvedTunjanganHarian();
 
         $inputs = [
             'employee_id' => $this->employee_id,
@@ -128,6 +139,10 @@ class SalarySlip extends Model
 
         foreach ($tunjanganBulanan as $key => $value) {
             $inputs["tunj_bulanan_{$key}"] = $value;
+        }
+
+        foreach ($tunjanganHarian as $key => $value) {
+            $inputs["tunj_harian_{$key}"] = $value;
         }
 
         return $inputs;

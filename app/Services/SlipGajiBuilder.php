@@ -16,7 +16,7 @@ class SlipGajiBuilder
         MonthlyTunjanganService::saveForPeriod(
             $bulan,
             $tahun,
-            MonthlyTunjanganService::fromRequest($validated)
+            $calculation['tunjangan_bulanan']
         );
 
         $validated['total_lembur'] = (float) ($validated['lembur']['total'] ?? 0);

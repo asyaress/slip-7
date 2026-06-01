@@ -136,30 +136,40 @@
                 </div>
             </section>
 
-            {{-- Tunjangan Bulanan --}}
+            {{-- Tunjangan --}}
             <section class="card p-6">
-                <h2 class="text-base font-semibold text-slate-900 mb-1">4. Tunjangan Bulanan</h2>
-                <p class="text-xs text-slate-500 mb-4">Total per bulan untuk periode yang dipilih. Nilai per hari dihitung otomatis (total ÷ jumlah hari kerja).</p>
+                <h2 class="text-base font-semibold text-slate-900 mb-1">4. Tunjangan</h2>
+                <p class="text-xs text-slate-500 mb-4">Isi nominal <strong>per hari</strong>. Total bulanan dihitung otomatis (per hari × jumlah hari kerja) dan bisa diubah manual jika perlu.</p>
 
                 <div class="hidden sm:grid sm:grid-cols-12 gap-3 mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">
                     <div class="sm:col-span-5">Jenis Tunjangan</div>
-                    <div class="sm:col-span-4">Total Bulanan</div>
                     <div class="sm:col-span-3">Per Hari</div>
+                    <div class="sm:col-span-4">Total Bulanan</div>
                 </div>
 
                 <div class="space-y-3" id="tunjangan-rows">
                     @foreach(config('slip.tunjangan') as $key => $label)
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row" data-tunj-key="{{ $key }}">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row" data-tunj-key="{{ $key }}" data-bulanan-overridden="0">
                         <div class="sm:col-span-5 text-sm text-slate-700">{{ $label }}</div>
+                        <div class="sm:col-span-3 rupiah-field">
+                            <span class="rupiah-prefix">Rp</span>
+                            <input type="text" inputmode="numeric" name="tunj_harian_{{ $key }}" id="tunj_harian_{{ $key }}"
+                                value="{{ $formatFormRupiah('tunj_harian_'.$key, 0) }}" placeholder="0"
+                                class="rupiah-input calc-trigger tunj-harian-input">
+                        </div>
                         <div class="sm:col-span-4 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
                             <input type="text" inputmode="numeric" name="tunj_bulanan_{{ $key }}" id="tunj_bulanan_{{ $key }}"
                                 value="{{ $formatFormRupiah('tunj_bulanan_'.$key, 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger tunj-bulanan-input">
                         </div>
-                        <div class="sm:col-span-3 text-sm font-medium text-slate-600 tunj-harian-display" id="tunj_harian_{{ $key }}">Rp 0</div>
                     </div>
                     @endforeach
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                    <span class="text-sm font-medium text-slate-700">Total Tunjangan Bulanan</span>
+                    <span id="summary-tunj-bulanan-total" class="text-base font-bold text-slate-900">Rp 0</span>
                 </div>
             </section>
 

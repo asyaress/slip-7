@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'pot_angsuran', 'pot_kasbon', 'pot_lain_lain',
     ];
 
+    const tunjanganHarianIds = Array.from(document.querySelectorAll('.tunj-harian-input'))
+        .map(el => el.id);
+
     const tunjanganBulananIds = Array.from(document.querySelectorAll('.tunj-bulanan-input'))
         .map(el => el.id);
 
@@ -68,9 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fillForm(data) {
         rupiahFields.forEach(field => setFieldValue(field, data[field] ?? 0));
+        tunjanganHarianIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         tunjanganBulananIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         numberFields.forEach(field => setFieldValue(field, data[field] ?? 0));
         setFasilitasCheckboxes(data.fasilitas ?? []);
+        document.querySelectorAll('.tunj-row').forEach(row => {
+            row.dataset.bulananOverridden = '0';
+        });
         calculate();
     }
 
@@ -123,7 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const params = new URLSearchParams({ bulan, tahun });
+            const jumlahKehadiran = document.getElementById('jumlah_kehadiran')?.value || 26;
+            const params = new URLSearchParams({ bulan, tahun, jumlah_kehadiran: jumlahKehadiran });
             const response = await fetch(`${monthlyTunjanganUrl}?${params.toString()}`, {
                 headers: { Accept: 'application/json' },
             });
@@ -137,6 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             Object.entries(fields).forEach(([field, value]) => {
                 setFieldValue(field, value);
+            });
+
+            document.querySelectorAll('.tunj-row').forEach(row => {
+                row.dataset.bulananOverridden = '0';
             });
 
             calculate();
@@ -290,16 +302,20 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalTunjBulanan = 0;
         let totalTunjHarian = 0;
 
-        tunjanganBulananIds.forEach(id => {
-            const bulanan = parseRupiah(document.getElementById(id)?.value);
-            const harian = bulanan / jumlahKehadiran;
-            totalTunjBulanan += bulanan;
-            totalTunjHarian += harian;
+        tunjanganHarianIds.forEach(harianId => {
+            const key = harianId.replace('tunj_harian_', '');
+            const bulananId = `tunj_bulanan_${key}`;
+            const row = document.querySelector(`.tunj-row[data-tunj-key="${key}"]`);
+            const harianEl = document.getElementById(harianId);
+            const bulananEl = document.getElementById(bulananId);
+            const harian = parseRupiah(harianEl?.value);
 
-            const display = document.getElementById(id.replace('tunj_bulanan_', 'tunj_harian_'));
-            if (display) {
-                display.textContent = formatRupiahDisplay(harian);
+            if (row?.dataset.bulananOverridden !== '1' && bulananEl) {
+                bulananEl.value = formatNominalInput(harian * jumlahKehadiran);
             }
+
+            totalTunjHarian += harian;
+            totalTunjBulanan += parseRupiah(bulananEl?.value);
         });
 
         const tunjanganEarned = totalTunjHarian * hadir;
@@ -309,12 +325,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const summaryTunjHarian = document.getElementById('summary-tunj-harian');
         const summaryTunjEarned = document.getElementById('summary-tunj-earned');
+        const summaryTunjBulananTotal = document.getElementById('summary-tunj-bulanan-total');
 
         if (summaryTunjHarian) {
             summaryTunjHarian.textContent = formatRupiahDisplay(totalTunjHarian);
         }
         if (summaryTunjEarned) {
             summaryTunjEarned.textContent = formatRupiahDisplay(tunjanganEarned);
+        }
+        if (summaryTunjBulananTotal) {
+            summaryTunjBulananTotal.textContent = formatRupiahDisplay(totalTunjBulanan);
         }
 
         document.getElementById('summary-potongan').textContent = formatRupiahDisplay(totalPotongan);
@@ -335,6 +355,36 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('input', calculate);
         el.addEventListener('change', calculate);
         el.addEventListener('rupiah-change', calculate);
+    });
+
+    document.querySelectorAll('.tunj-harian-input').forEach(el => {
+        el.addEventListener('input', () => {
+            const row = el.closest('.tunj-row');
+            if (row) {
+                row.dataset.bulananOverridden = '0';
+            }
+        });
+        el.addEventListener('rupiah-change', () => {
+            const row = el.closest('.tunj-row');
+            if (row) {
+                row.dataset.bulananOverridden = '0';
+            }
+        });
+    });
+
+    document.querySelectorAll('.tunj-bulanan-input').forEach(el => {
+        el.addEventListener('input', () => {
+            const row = el.closest('.tunj-row');
+            if (row) {
+                row.dataset.bulananOverridden = '1';
+            }
+        });
+        el.addEventListener('rupiah-change', () => {
+            const row = el.closest('.tunj-row');
+            if (row) {
+                row.dataset.bulananOverridden = '1';
+            }
+        });
     });
 
     bindLemburInputs();

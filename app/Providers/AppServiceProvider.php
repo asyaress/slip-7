@@ -22,7 +22,9 @@ class AppServiceProvider extends ServiceProvider
     {
         \Carbon\Carbon::setLocale('id');
 
-        if ($rootUrl = config('app.url')) {
+        // Hanya paksa APP_URL di production (subfolder VPS). Di local biarkan
+        // mengikuti host request (127.0.0.1 vs localhost).
+        if (! $this->app->environment('local') && ($rootUrl = config('app.url'))) {
             URL::forceRootUrl($rootUrl);
         }
     }

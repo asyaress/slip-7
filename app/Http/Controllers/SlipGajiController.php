@@ -97,9 +97,11 @@ class SlipGajiController extends Controller
             (int) $validated['tahun']
         );
 
+        $jumlahKehadiran = max(1, (int) ($request->input('jumlah_kehadiran', 26)));
+
         return response()->json([
             'rates' => $rates,
-            'fields' => MonthlyTunjanganService::toFormFields($rates),
+            'fields' => MonthlyTunjanganService::toFormFields($rates, $jumlahKehadiran),
         ]);
     }
 
@@ -145,8 +147,9 @@ class SlipGajiController extends Controller
         $this->normalizeRupiahFields($request);
         $this->normalizeLemburFields($request);
 
-        $tunjRules = [];
+        $tunRules = [];
         foreach (MonthlyTunjanganService::keys() as $key) {
+            $tunjRules["tunj_harian_{$key}"] = 'nullable|numeric|min:0';
             $tunjRules["tunj_bulanan_{$key}"] = 'nullable|numeric|min:0';
         }
 
@@ -172,6 +175,9 @@ class SlipGajiController extends Controller
         ], $tunjRules));
 
         foreach (MonthlyTunjanganService::keys() as $key) {
+            $validated["tunj_harian_{$key}"] = SlipGajiCalculator::parseRupiah(
+                $validated["tunj_harian_{$key}"] ?? 0
+            );
             $validated["tunj_bulanan_{$key}"] = SlipGajiCalculator::parseRupiah(
                 $validated["tunj_bulanan_{$key}"] ?? 0
             );
@@ -237,6 +243,10 @@ class SlipGajiController extends Controller
             $field = "tunj_bulanan_{$key}";
             if ($request->has($field)) {
                 $normalized[$field] = SlipGajiCalculator::parseRupiah($request->input($field));
+            }
+            $fieldHarian = "tunj_harian_{$key}";
+            if ($request->has($fieldHarian)) {
+                $normalized[$fieldHarian] = SlipGajiCalculator::parseRupiah($request->input($fieldHarian));
             }
         }
 

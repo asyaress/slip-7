@@ -58,6 +58,36 @@ class SlipGajiCalculator
         return $selected;
     }
 
+    /**
+     * @return array{harian: array<string, float>, bulanan: array<string, float>}
+     */
+    public static function resolveTunjanganFromRequest(array $data, int $jumlahKehadiran): array
+    {
+        $days = max(1, $jumlahKehadiran);
+        $harian = [];
+        $bulanan = [];
+
+        foreach (self::tunjanganKeys() as $key) {
+            $h = self::parseRupiah($data["tunj_harian_{$key}"] ?? null);
+            $b = self::parseRupiah($data["tunj_bulanan_{$key}"] ?? null);
+            $hasHarian = array_key_exists("tunj_harian_{$key}", $data);
+            $hasBulanan = array_key_exists("tunj_bulanan_{$key}", $data);
+
+            if ($hasHarian) {
+                $harian[$key] = $h;
+                $bulanan[$key] = $hasBulanan ? $b : ($h * $days);
+            } elseif ($hasBulanan && $b > 0) {
+                $bulanan[$key] = $b;
+                $harian[$key] = $b / $days;
+            } else {
+                $harian[$key] = 0;
+                $bulanan[$key] = 0;
+            }
+        }
+
+        return compact('harian', 'bulanan');
+    }
+
     public static function calculate(array $data): array
     {
         $gajiPokok = (float) ($data['gaji_pokok'] ?? 0);
@@ -65,11 +95,9 @@ class SlipGajiCalculator
         $hadir = (int) ($data['hadir'] ?? 0);
         $totalLembur = (float) ($data['total_lembur'] ?? ($data['lembur']['total'] ?? 0));
 
-        $tunjanganBulanan = MonthlyTunjanganService::fromRequest($data);
-        $tunjanganHarian = [];
-        foreach (self::tunjanganKeys() as $key) {
-            $tunjanganHarian[$key] = $tunjanganBulanan[$key] / $jumlahKehadiran;
-        }
+        $tunjanganResolved = self::resolveTunjanganFromRequest($data, $jumlahKehadiran);
+        $tunjanganHarian = $tunjanganResolved['harian'];
+        $tunjanganBulanan = $tunjanganResolved['bulanan'];
 
         $totalTunjanganHarian = array_sum($tunjanganHarian);
         $tunjanganEarned = $totalTunjanganHarian * $hadir;

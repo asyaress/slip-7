@@ -41,12 +41,16 @@ class MonthlyTunjanganService
         return $normalized;
     }
 
-    public static function toFormFields(array $rates): array
+    /** @param  array<string, float>  $monthlyRates */
+    public static function toFormFields(array $monthlyRates, int $jumlahKehadiran = 26): array
     {
         $fields = [];
+        $days = max(1, $jumlahKehadiran);
 
         foreach (self::keys() as $key) {
-            $fields["tunj_bulanan_{$key}"] = $rates[$key] ?? 0;
+            $monthly = (float) ($monthlyRates[$key] ?? 0);
+            $fields["tunj_bulanan_{$key}"] = $monthly;
+            $fields["tunj_harian_{$key}"] = $monthly / $days;
         }
 
         return $fields;
