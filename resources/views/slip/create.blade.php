@@ -136,9 +136,23 @@
                 </div>
             </section>
 
+            {{-- Gaji Pokok --}}
+            <section class="card p-6">
+                <h2 class="text-base font-semibold text-slate-900 mb-4">4. Gaji Pokok</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                    <label class="text-sm font-medium text-slate-700">Gaji Pokok <span class="text-slate-400 font-normal">(Per Bulan)</span></label>
+                    <div class="sm:col-span-2 rupiah-field">
+                        <span class="rupiah-prefix">Rp</span>
+                        <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
+                            value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
+                            class="rupiah-input calc-trigger">
+                    </div>
+                </div>
+            </section>
+
             {{-- Tunjangan --}}
             <section class="card p-6">
-                <h2 class="text-base font-semibold text-slate-900 mb-1">4. Tunjangan</h2>
+                <h2 class="text-base font-semibold text-slate-900 mb-1">5. Tunjangan</h2>
                 <p class="text-xs text-slate-500 mb-4">Isi nominal <strong>per hari</strong>. Total bulanan dihitung otomatis (per hari × jumlah hari kerja) dan bisa diubah manual jika perlu.</p>
 
                 <div class="hidden sm:grid sm:grid-cols-12 gap-3 mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">
@@ -170,20 +184,6 @@
                 <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
                     <span class="text-sm font-medium text-slate-700">Total Tunjangan Bulanan</span>
                     <span id="summary-tunj-bulanan-total" class="text-base font-bold text-slate-900">Rp 0</span>
-                </div>
-            </section>
-
-            {{-- Gaji Pokok --}}
-            <section class="card p-6">
-                <h2 class="text-base font-semibold text-slate-900 mb-4">5. Gaji Pokok</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                    <label class="text-sm font-medium text-slate-700">Gaji Pokok <span class="text-slate-400 font-normal">(Per Bulan)</span></label>
-                    <div class="sm:col-span-2 rupiah-field">
-                        <span class="rupiah-prefix">Rp</span>
-                        <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
-                            value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
-                            class="rupiah-input calc-trigger">
-                    </div>
                 </div>
             </section>
 
