@@ -118,6 +118,13 @@
         </table>
         </div>
 
+        <div class="slip-section">
+        <div class="thp-box">
+            <span><em>Take Home Pay</em> / Gaji bersih yang diterima selama satu bulan berjumlah</span>
+            <span class="thp-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['take_home_pay']) }}</span>
+        </div>
+        </div>
+
         @php
             $lemburWeeks = $slip['lembur']['weeks'] ?? [];
             $totalLembur = (float) ($slip['total_lembur'] ?? 0);
@@ -172,10 +179,6 @@
         @endif
 
         <div class="slip-section">
-        <div class="thp-box">
-            <span><em>Take Home Pay</em> / Gaji bersih yang diterima selama satu bulan berjumlah</span>
-            <span class="thp-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['take_home_pay']) }}</span>
-        </div>
         <div class="total-pendapatan">
             <span>Total Pendapatan (<em>Take Home Pay</em> + Lembur)</span>
             <span>{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_pendapatan'] ?? ($slip['take_home_pay'] + ($slip['total_lembur'] ?? 0))) }}</span>
