@@ -98,8 +98,11 @@
             </tr>
         </table>
 
-        <div class="section-title">Potongan :</div>
+        <div class="slip-section">
         <table class="gaji">
+            <tr class="section-header">
+                <td colspan="5">Potongan :</td>
+            </tr>
             @php $noPot = 1; @endphp
             @foreach([
                 'angsuran' => 'Angsuran',
@@ -120,14 +123,18 @@
                 <td></td>
             </tr>
         </table>
+        </div>
 
         @php
             $lemburWeeks = $slip['lembur']['weeks'] ?? [];
             $totalLembur = (float) ($slip['total_lembur'] ?? 0);
         @endphp
         @if($totalLembur > 0)
-        <div class="section-title">Lembur :</div>
+        <div class="slip-section">
         <table class="gaji">
+            <tr class="section-header">
+                <td colspan="5">Lembur :</td>
+            </tr>
             @foreach($lemburWeeks as $week)
             @if(($week['nominal'] ?? 0) > 0)
             <tr>
@@ -145,6 +152,7 @@
                 <td class="unit-label">Total Lembur</td>
             </tr>
         </table>
+        </div>
         @endif
 
         @php
@@ -152,8 +160,11 @@
             $fasilitasLabels = config('slip.fasilitas', []);
         @endphp
         @if(!empty($fasilitasList))
-        <div class="section-title">Adapun Fasilitas yang di peroleh :</div>
+        <div class="slip-section">
         <table class="gaji">
+            <tr class="section-header">
+                <td colspan="5">Adapun Fasilitas yang di peroleh :</td>
+            </tr>
             @php $noFas = 1; @endphp
             @foreach($fasilitasList as $fasKey)
             @if(isset($fasilitasLabels[$fasKey]))
@@ -164,16 +175,19 @@
             @endif
             @endforeach
         </table>
+        </div>
         @endif
 
+        <div class="slip-section">
         <div class="thp-box">
             <span><em>Take Home Pay</em> / Gaji bersih yang diterima selama satu bulan berjumlah</span>
             <span class="thp-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['take_home_pay']) }}</span>
         </div>
+        </div>
 
         <p class="closing-text">Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
 
-        <div class="signature-section">
+        <div class="slip-section signature-section">
             <p class="signature-place-date">{{ config('company.location') }}, {{ $slip['tanggal_cetak'] }}</p>
 
             <div class="signature-wrap">

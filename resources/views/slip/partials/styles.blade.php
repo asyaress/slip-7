@@ -141,6 +141,16 @@
         border-bottom: 1px solid #e5e7eb;
     }
 
+    .slip-page .slip-section {
+        page-break-inside: avoid;
+        break-inside: avoid-page;
+    }
+
+    .slip-page .slip-section table.gaji {
+        page-break-inside: avoid;
+        break-inside: avoid-page;
+    }
+
     .slip-page table.gaji {
         width: 100%;
         border-collapse: collapse;
@@ -273,6 +283,16 @@
         .slip-page .qr-image {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+        }
+
+        .slip-page .section-title {
+            page-break-after: avoid;
+        }
+
+        .slip-page .slip-section,
+        .slip-page .slip-section table.gaji {
+            page-break-inside: avoid;
+            break-inside: avoid-page;
         }
     }
 

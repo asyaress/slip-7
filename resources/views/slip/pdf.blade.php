@@ -107,6 +107,17 @@
             margin: 10px 0 4px;
             padding-bottom: 3px;
             border-bottom: 1px solid #e5e7eb;
+            page-break-after: avoid;
+        }
+
+        .slip-section {
+            page-break-inside: avoid;
+            break-inside: avoid-page;
+        }
+
+        .slip-section table.gaji {
+            page-break-inside: avoid;
+            break-inside: avoid-page;
         }
 
         table.gaji {
