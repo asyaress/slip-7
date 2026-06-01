@@ -72,10 +72,14 @@ class SlipGajiCalculator
             $b = self::parseRupiah($data["tunj_bulanan_{$key}"] ?? null);
             $hasHarian = array_key_exists("tunj_harian_{$key}", $data);
             $hasBulanan = array_key_exists("tunj_bulanan_{$key}", $data);
+            $autoBulanan = $h * $days;
 
-            if ($hasHarian) {
+            if ($hasBulanan && $hasHarian && $b > 0 && abs($b - $autoBulanan) > 1) {
+                $bulanan[$key] = $b;
+                $harian[$key] = $b / $days;
+            } elseif ($hasHarian) {
                 $harian[$key] = $h;
-                $bulanan[$key] = $hasBulanan ? $b : ($h * $days);
+                $bulanan[$key] = $hasBulanan ? $b : $autoBulanan;
             } elseif ($hasBulanan && $b > 0) {
                 $bulanan[$key] = $b;
                 $harian[$key] = $b / $days;

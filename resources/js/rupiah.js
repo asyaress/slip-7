@@ -19,7 +19,25 @@ export function initRupiahInputs(root = document) {
         }
         input.dataset.rupiahBound = '1';
 
+        input.addEventListener('beforeinput', (e) => {
+            const { selectionStart, selectionEnd, value } = e.target;
+            const isDelete = e.inputType === 'deleteContentBackward'
+                || e.inputType === 'deleteContentForward'
+                || e.inputType === 'deleteByCut';
+
+            if (isDelete && selectionStart === 0 && selectionEnd === value.length && value.length > 0) {
+                e.target.dataset.rupiahClearing = '1';
+            }
+        });
+
         input.addEventListener('input', (e) => {
+            if (e.target.dataset.rupiahClearing === '1') {
+                delete e.target.dataset.rupiahClearing;
+                e.target.value = '';
+                e.target.dispatchEvent(new Event('rupiah-change', { bubbles: true }));
+                return;
+            }
+
             const raw = parseRupiah(e.target.value);
             const pos = e.target.selectionStart;
             const oldLen = e.target.value.length;

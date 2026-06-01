@@ -70,23 +70,31 @@
             </tr>
             @php
                 $tunjLabels = config('slip.tunjangan', []);
+                $tunjBulanan = $slip['tunjangan_bulanan'] ?? [];
+                $jumlahHariKerja = max(1, (int) ($slip['jumlah_kehadiran'] ?? 26));
+                foreach ($tunjLabels as $key => $label) {
+                    if (($tunjBulanan[$key] ?? 0) <= 0 && ($slip['tunjangan'][$key] ?? 0) > 0) {
+                        $tunjBulanan[$key] = (float) $slip['tunjangan'][$key] * $jumlahHariKerja;
+                    }
+                }
+                $totalTunjBulanan = array_sum($tunjBulanan);
                 $no = 1;
             @endphp
             @foreach($tunjLabels as $key => $label)
-            @if(($slip['tunjangan'][$key] ?? 0) > 0)
+            @if(($tunjBulanan[$key] ?? 0) > 0)
             <tr>
                 <td>{{ $no++ }}.</td>
                 <td>{{ $label }}</td>
                 <td>:</td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['tunjangan'][$key]) }}</td>
-                <td class="unit-label">Per - Hari</td>
+                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($tunjBulanan[$key]) }}</td>
+                <td class="unit-label">Per - Bulan</td>
             </tr>
             @endif
             @endforeach
             <tr class="subtotal">
                 <td colspan="3"></td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_tunjangan']) }}</td>
-                <td class="unit-label">Total / Hari</td>
+                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($totalTunjBulanan) }}</td>
+                <td class="unit-label">Total / Bulan</td>
             </tr>
         </table>
 
@@ -113,30 +121,6 @@
             </tr>
         </table>
 
-        <div class="thp-box">
-            <span>Maka Take Home Pay Selama Satu Bulan Berjumlah</span>
-            <span class="thp-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['take_home_pay']) }}</span>
-        </div>
-
-        @php
-            $fasilitasList = $slip['fasilitas'] ?? [];
-            $fasilitasLabels = config('slip.fasilitas', []);
-        @endphp
-        @if(!empty($fasilitasList))
-        <div class="section-title">Adapun Fasilitas yang di peroleh :</div>
-        <table class="gaji">
-            @php $noFas = 1; @endphp
-            @foreach($fasilitasList as $fasKey)
-            @if(isset($fasilitasLabels[$fasKey]))
-            <tr>
-                <td style="width:28px;">{{ $noFas++ }}.</td>
-                <td colspan="4">{{ $fasilitasLabels[$fasKey] }}</td>
-            </tr>
-            @endif
-            @endforeach
-        </table>
-        @endif
-
         @php
             $lemburWeeks = $slip['lembur']['weeks'] ?? [];
             $totalLembur = (float) ($slip['total_lembur'] ?? 0);
@@ -162,6 +146,30 @@
             </tr>
         </table>
         @endif
+
+        @php
+            $fasilitasList = $slip['fasilitas'] ?? [];
+            $fasilitasLabels = config('slip.fasilitas', []);
+        @endphp
+        @if(!empty($fasilitasList))
+        <div class="section-title">Adapun Fasilitas yang di peroleh :</div>
+        <table class="gaji">
+            @php $noFas = 1; @endphp
+            @foreach($fasilitasList as $fasKey)
+            @if(isset($fasilitasLabels[$fasKey]))
+            <tr>
+                <td style="width:28px;">{{ $noFas++ }}.</td>
+                <td colspan="4">{{ $fasilitasLabels[$fasKey] }}</td>
+            </tr>
+            @endif
+            @endforeach
+        </table>
+        @endif
+
+        <div class="thp-box">
+            <span><em>Take Home Pay</em> / Gaji bersih yang diterima selama satu bulan berjumlah</span>
+            <span class="thp-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['take_home_pay']) }}</span>
+        </div>
 
         <p class="closing-text">Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
 
