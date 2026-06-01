@@ -13,6 +13,7 @@ return [
         'administrasi' => 'Tunjangan Administrasi',
         'finishing' => 'Tunjangan Finishing',
         'pengambilan' => 'Tunjangan Pengambilan',
+        'kontrakan' => 'Tunjangan Kontrakan',
     ],
 
     'fasilitas' => [
