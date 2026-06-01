@@ -30,20 +30,20 @@
         <p class="text-xs text-slate-400 mt-1">Rata-rata {{ $fmt($financials['rata_thp']) }} / karyawan</p>
     </div>
     <div class="card p-5 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Pendapatan</p>
-        <p class="text-2xl font-bold text-emerald-700 mt-2">{{ $fmt($financials['total_pendapatan']) }}</p>
-        <p class="text-xs text-slate-400 mt-1">THP + Fasilitas · Rata {{ $fmt($financials['rata_pendapatan']) }}</p>
+        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Lembur</p>
+        <p class="text-2xl font-bold text-amber-700 mt-2">{{ $fmt($financials['total_lembur']) }}</p>
+        <p class="text-xs text-slate-400 mt-1">Termasuk dalam THP</p>
     </div>
     <div class="card p-5">
         <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Tunjangan</p>
         <p class="text-2xl font-bold text-slate-900 mt-2">{{ $fmt($financials['total_tunjangan']) }}</p>
-        <p class="text-xs text-slate-400 mt-1">Gaji pokok {{ $fmt($financials['total_gaji_pokok']) }}</p>
+        <p class="text-xs text-slate-400 mt-1">Per hari (agregat)</p>
     </div>
     <div class="card p-5">
         <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Potongan</p>
         <p class="text-2xl font-bold text-red-600 mt-2">{{ $fmt($financials['total_potongan']) }}</p>
-        <p class="text-xs text-slate-400 mt-1">Fasilitas {{ $fmt($financials['total_fasilitas']) }}</p>
+        <p class="text-xs text-slate-400 mt-1">Gaji pokok {{ $fmt($financials['total_gaji_pokok']) }}</p>
     </div>
 </div>
 
@@ -170,21 +170,20 @@
                 @php
                     $rows = [
                         ['Gaji Pokok', $financials['total_gaji_pokok']],
-                        ['Total Tunjangan', $financials['total_tunjangan']],
+                        ['Total Tunjangan / Hari', $financials['total_tunjangan']],
+                        ['Total Lembur', $financials['total_lembur']],
                         ['Take Home Pay', $financials['total_thp']],
-                        ['Total Fasilitas', $financials['total_fasilitas']],
-                        ['Total Pendapatan', $financials['total_pendapatan']],
                         ['Total Potongan', $financials['total_potongan']],
                     ];
                     $count = max(1, $stats['slip_periode']);
-                    $pendapatan = max(1, $financials['total_pendapatan']);
+                    $thpBase = max(1, $financials['total_thp']);
                 @endphp
                 @foreach($rows as [$label, $total])
                 <tr class="hover:bg-slate-50/80">
                     <td class="px-6 py-3.5 font-medium text-slate-900">{{ $label }}</td>
                     <td class="px-6 py-3.5 text-right {{ str_contains($label, 'Potongan') ? 'text-red-600' : '' }}">{{ $fmt($total) }}</td>
                     <td class="px-6 py-3.5 text-right text-slate-600">{{ $fmt($total / $count) }}</td>
-                    <td class="px-6 py-3.5 text-right text-slate-500">{{ $label !== 'Total Potongan' ? round(($total / $pendapatan) * 100, 1).'%' : '—' }}</td>
+                    <td class="px-6 py-3.5 text-right text-slate-500">{{ $label !== 'Total Potongan' ? round(($total / $thpBase) * 100, 1).'%' : '—' }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -329,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: data.thp_trend.labels,
             datasets: [
                 { label: 'Total THP', data: data.thp_trend.thpValues, borderColor: C.maroon, backgroundColor: 'rgba(140,27,61,0.08)', fill: true, tension: 0.35, pointRadius: 4 },
-                { label: 'Total Pendapatan', data: data.thp_trend.pendapatanValues, borderColor: C.emerald, backgroundColor: 'rgba(5,150,105,0.06)', fill: true, tension: 0.35, pointRadius: 4 }
+                { label: 'Total Lembur', data: data.thp_trend.pendapatanValues, borderColor: C.emerald, backgroundColor: 'rgba(5,150,105,0.06)', fill: true, tension: 0.35, pointRadius: 4 }
             ]
         },
         options: {

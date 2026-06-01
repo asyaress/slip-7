@@ -9,8 +9,8 @@ class SalarySlip extends Model
 {
     protected $fillable = [
         'employee_id', 'bulan', 'tahun', 'nomor_surat',
-        'gaji_pokok', 'tunjangan', 'potongan',
-        'bpjs_kesehatan', 'makan_siang_malam', 'pensiun',
+        'gaji_pokok', 'tunjangan', 'tunjangan_bulanan', 'potongan',
+        'bpjs_kesehatan', 'makan_siang_malam', 'pensiun', 'fasilitas',
         'lembur', 'total_lembur',
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
         'total_tunjangan', 'total_potongan', 'take_home_pay',
@@ -22,7 +22,9 @@ class SalarySlip extends Model
     {
         return [
             'tunjangan' => 'array',
+            'tunjangan_bulanan' => 'array',
             'potongan' => 'array',
+            'fasilitas' => 'array',
             'gaji_pokok' => 'float',
             'bpjs_kesehatan' => 'float',
             'makan_siang_malam' => 'float',
@@ -56,9 +58,46 @@ class SalarySlip extends Model
         return strtoupper($this->namaBulan()).' '.$this->tahun;
     }
 
-    public function resolvedTotalPendapatan(): float
+    public function resolvedFasilitas(): array
     {
-        return $this->take_home_pay + $this->total_fasilitas + ($this->total_lembur ?? 0);
+        if (! empty($this->fasilitas)) {
+            return $this->fasilitas;
+        }
+
+        return \App\Services\SlipGajiCalculator::fasilitasFromLegacy(
+            (float) $this->bpjs_kesehatan,
+            (float) $this->makan_siang_malam,
+            (float) $this->pensiun,
+        );
+    }
+
+    public function resolvedTunjanganBulanan(): array
+    {
+        if (! empty($this->tunjangan_bulanan)) {
+            return $this->tunjangan_bulanan;
+        }
+
+        $tunjangan = $this->tunjangan ?? [];
+        $monthly = [];
+
+        foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
+            $monthly[$key] = (float) ($tunjangan[$key] ?? 0);
+        }
+
+        return $monthly;
+    }
+
+    public function resolvedTunjanganHarian(): array
+    {
+        $monthly = $this->resolvedTunjanganBulanan();
+        $days = max(1, (int) $this->jumlah_kehadiran);
+        $daily = [];
+
+        foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
+            $daily[$key] = ($monthly[$key] ?? 0) / $days;
+        }
+
+        return $daily;
     }
 
     public function isEmailSent(): bool
@@ -68,21 +107,14 @@ class SalarySlip extends Model
 
     public function toFormInputs(): array
     {
-        $tunjangan = $this->tunjangan ?? [];
         $potongan = $this->potongan ?? [];
+        $tunjanganBulanan = $this->resolvedTunjanganBulanan();
 
-        return [
+        $inputs = [
             'employee_id' => $this->employee_id,
             'bulan' => $this->bulan,
             'tahun' => $this->tahun,
             'gaji_pokok' => $this->gaji_pokok,
-            'tunj_transport' => $tunjangan['transport'] ?? 0,
-            'tunj_kehadiran' => $tunjangan['kehadiran'] ?? 0,
-            'tunj_kinerja' => $tunjangan['kinerja'] ?? 0,
-            'tunj_jabatan' => $tunjangan['jabatan'] ?? 0,
-            'tunj_perawatan' => $tunjangan['perawatan'] ?? 0,
-            'tunj_operator' => $tunjangan['operator'] ?? 0,
-            'tunj_konsumsi' => $tunjangan['konsumsi'] ?? 0,
             'pot_angsuran' => $potongan['angsuran'] ?? 0,
             'pot_kasbon' => $potongan['kasbon'] ?? 0,
             'pot_lain_lain' => $potongan['lain_lain'] ?? 0,
@@ -90,16 +122,25 @@ class SalarySlip extends Model
             'hadir' => $this->hadir,
             'sakit_izin' => $this->sakit_izin,
             'tidak_hadir' => $this->tidak_hadir,
-            'bpjs_kesehatan' => $this->bpjs_kesehatan,
-            'makan_siang_malam' => $this->makan_siang_malam,
-            'pensiun' => $this->pensiun,
+            'fasilitas' => $this->resolvedFasilitas(),
             'lembur' => $this->lembur,
         ];
+
+        foreach ($tunjanganBulanan as $key => $value) {
+            $inputs["tunj_bulanan_{$key}"] = $value;
+        }
+
+        return $inputs;
     }
 
     public function toSlipArray(): array
     {
         $employee = $this->employee;
+        $jumlahKehadiran = max(1, (int) $this->jumlah_kehadiran);
+        $tunjanganBulanan = $this->resolvedTunjanganBulanan();
+        $tunjanganHarian = $this->resolvedTunjanganHarian();
+        $totalTunjanganHarian = array_sum($tunjanganHarian);
+        $tunjanganEarned = $totalTunjanganHarian * (int) $this->hadir;
 
         $slip = [
             'id' => $this->id,
@@ -121,22 +162,20 @@ class SalarySlip extends Model
             'tgl_masuk' => $employee->tgl_masuk->format('d-m-Y'),
             'tanggal_cetak' => $this->updated_at->locale('id')->translatedFormat('d F Y'),
             'gaji_pokok' => $this->gaji_pokok,
-            'tunjangan' => $this->tunjangan,
+            'tunjangan' => $tunjanganHarian,
+            'tunjangan_bulanan' => $tunjanganBulanan,
+            'tunjangan_earned' => $tunjanganEarned,
             'potongan' => $this->potongan,
             'jumlah_kehadiran' => $this->jumlah_kehadiran,
             'hadir' => $this->hadir,
             'sakit_izin' => $this->sakit_izin,
             'tidak_hadir' => $this->tidak_hadir,
-            'bpjs_kesehatan' => $this->bpjs_kesehatan,
-            'makan_siang_malam' => $this->makan_siang_malam,
-            'pensiun' => $this->pensiun,
+            'fasilitas' => $this->resolvedFasilitas(),
             'lembur' => $this->lembur ?? ['weeks' => [], 'total' => 0],
             'total_lembur' => $this->total_lembur ?? 0,
-            'total_tunjangan' => $this->total_tunjangan,
+            'total_tunjangan' => $this->total_tunjangan ?: $totalTunjanganHarian,
             'total_potongan' => $this->total_potongan,
             'take_home_pay' => $this->take_home_pay,
-            'total_fasilitas' => $this->total_fasilitas,
-            'total_pendapatan' => $this->resolvedTotalPendapatan(),
             'signatory' => config('employees.signatory'),
             'email_sent_at' => $this->email_sent_at,
             'email_status' => $this->email_status,

@@ -10,9 +10,17 @@ class SlipGajiBuilder
 {
     public static function buildFromValidated(array $validated, Employee $employee): array
     {
-        $calculation = SlipGajiCalculator::calculate($validated);
         $bulan = (int) $validated['bulan'];
         $tahun = (int) $validated['tahun'];
+
+        MonthlyTunjanganService::saveForPeriod(
+            $bulan,
+            $tahun,
+            MonthlyTunjanganService::fromRequest($validated)
+        );
+
+        $validated['total_lembur'] = (float) ($validated['lembur']['total'] ?? 0);
+        $calculation = SlipGajiCalculator::calculate($validated);
         $namaBulan = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
 
         return [
@@ -35,21 +43,19 @@ class SlipGajiBuilder
             'tanggal_cetak' => Carbon::now()->locale('id')->translatedFormat('d F Y'),
             'gaji_pokok' => (float) $validated['gaji_pokok'],
             'tunjangan' => $calculation['tunjangan'],
+            'tunjangan_bulanan' => $calculation['tunjangan_bulanan'],
+            'tunjangan_earned' => $calculation['tunjangan_earned'],
             'potongan' => $calculation['potongan'],
             'jumlah_kehadiran' => (int) $validated['jumlah_kehadiran'],
             'hadir' => (int) $validated['hadir'],
             'sakit_izin' => (int) ($validated['sakit_izin'] ?? 0),
             'tidak_hadir' => (int) ($validated['tidak_hadir'] ?? 0),
-            'bpjs_kesehatan' => (float) ($validated['bpjs_kesehatan'] ?? 186222),
-            'makan_siang_malam' => (float) ($validated['makan_siang_malam'] ?? 0),
-            'pensiun' => (float) ($validated['pensiun'] ?? 0),
+            'fasilitas' => $calculation['fasilitas'],
             'lembur' => $validated['lembur'] ?? ['weeks' => [], 'total' => 0],
-            'total_lembur' => (float) ($validated['lembur']['total'] ?? 0),
+            'total_lembur' => $validated['total_lembur'],
             'total_tunjangan' => $calculation['total_tunjangan'],
             'total_potongan' => $calculation['total_potongan'],
             'take_home_pay' => $calculation['take_home_pay'],
-            'total_fasilitas' => $calculation['total_fasilitas'],
-            'total_pendapatan' => $calculation['total_pendapatan'] + (float) ($validated['lembur']['total'] ?? 0),
             'signatory' => config('employees.signatory'),
         ];
     }
@@ -66,10 +72,12 @@ class SlipGajiBuilder
                 'nomor_surat' => $slip['nomor_surat'],
                 'gaji_pokok' => $slip['gaji_pokok'],
                 'tunjangan' => $slip['tunjangan'],
+                'tunjangan_bulanan' => $slip['tunjangan_bulanan'] ?? null,
                 'potongan' => $slip['potongan'],
-                'bpjs_kesehatan' => $slip['bpjs_kesehatan'],
-                'makan_siang_malam' => $slip['makan_siang_malam'],
-                'pensiun' => $slip['pensiun'],
+                'bpjs_kesehatan' => 0,
+                'makan_siang_malam' => 0,
+                'pensiun' => 0,
+                'fasilitas' => $slip['fasilitas'] ?? [],
                 'lembur' => $slip['lembur'] ?? ['weeks' => [], 'total' => 0],
                 'total_lembur' => $slip['total_lembur'] ?? 0,
                 'jumlah_kehadiran' => $slip['jumlah_kehadiran'],
@@ -79,8 +87,8 @@ class SlipGajiBuilder
                 'total_tunjangan' => $slip['total_tunjangan'],
                 'total_potongan' => $slip['total_potongan'],
                 'take_home_pay' => $slip['take_home_pay'],
-                'total_fasilitas' => $slip['total_fasilitas'],
-                'total_pendapatan' => $slip['total_pendapatan'],
+                'total_fasilitas' => 0,
+                'total_pendapatan' => 0,
             ]
         );
 

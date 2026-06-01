@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/slip-gaji', [SlipGajiController::class, 'create'])->name('slip.create');
     Route::get('/slip-gaji/existing', [SlipGajiController::class, 'existing'])->name('slip.existing');
     Route::get('/slip-gaji/lembur-weeks', [SlipGajiController::class, 'lemburWeeks'])->name('slip.lembur-weeks');
+    Route::get('/slip-gaji/monthly-tunjangan', [SlipGajiController::class, 'monthlyTunjangan'])->name('slip.monthly-tunjangan');
     Route::get('/slip-gaji/{slip}/edit', [SlipGajiController::class, 'edit'])->name('slip.edit');
     Route::post('/slip-gaji/preview', [SlipGajiController::class, 'preview'])->name('slip.preview');
     Route::post('/slip-gaji', [SlipGajiController::class, 'store'])->name('slip.store');

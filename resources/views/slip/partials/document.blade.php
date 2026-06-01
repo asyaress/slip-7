@@ -69,30 +69,24 @@
                 <td colspan="5">Tunjangan</td>
             </tr>
             @php
-                $tunjLabels = [
-                    'transport' => 'Tunjangan Transport',
-                    'kehadiran' => 'Tunjangan Kehadiran',
-                    'kinerja' => 'Tunjangan Kinerja',
-                    'jabatan' => 'Tunjangan Jabatan',
-                    'perawatan' => 'Tunjangan Perawatan',
-                    'operator' => 'Tunjangan Operator',
-                    'konsumsi' => 'Tunjangan Konsumsi',
-                ];
+                $tunjLabels = config('slip.tunjangan', []);
                 $no = 1;
             @endphp
             @foreach($tunjLabels as $key => $label)
+            @if(($slip['tunjangan'][$key] ?? 0) > 0)
             <tr>
                 <td>{{ $no++ }}.</td>
                 <td>{{ $label }}</td>
                 <td>:</td>
                 <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['tunjangan'][$key]) }}</td>
-                <td class="unit-label">Per - Bulan</td>
+                <td class="unit-label">Per - Hari</td>
             </tr>
+            @endif
             @endforeach
             <tr class="subtotal">
                 <td colspan="3"></td>
                 <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_tunjangan']) }}</td>
-                <td></td>
+                <td class="unit-label">Total / Hari</td>
             </tr>
         </table>
 
@@ -124,35 +118,24 @@
             <span class="thp-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['take_home_pay']) }}</span>
         </div>
 
+        @php
+            $fasilitasList = $slip['fasilitas'] ?? [];
+            $fasilitasLabels = config('slip.fasilitas', []);
+        @endphp
+        @if(!empty($fasilitasList))
         <div class="section-title">Adapun Fasilitas yang di peroleh :</div>
         <table class="gaji">
+            @php $noFas = 1; @endphp
+            @foreach($fasilitasList as $fasKey)
+            @if(isset($fasilitasLabels[$fasKey]))
             <tr>
-                <td style="width:28px;"></td>
-                <td>BPJS Kesehatan</td>
-                <td style="width:12px;">:</td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['bpjs_kesehatan']) }}</td>
-                <td class="unit-label">Per - Bulan</td>
+                <td style="width:28px;">{{ $noFas++ }}.</td>
+                <td colspan="4">{{ $fasilitasLabels[$fasKey] }}</td>
             </tr>
-            <tr>
-                <td></td>
-                <td>Makan Siang/Malam</td>
-                <td>:</td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['makan_siang_malam']) }}</td>
-                <td class="unit-label">Per - Bulan</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td>Pensiun</td>
-                <td>:</td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['pensiun']) }}</td>
-                <td class="unit-label">Per - Bulan</td>
-            </tr>
-            <tr class="subtotal">
-                <td colspan="3"></td>
-                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_fasilitas']) }}</td>
-                <td></td>
-            </tr>
+            @endif
+            @endforeach
         </table>
+        @endif
 
         @php
             $lemburWeeks = $slip['lembur']['weeks'] ?? [];
@@ -179,11 +162,6 @@
             </tr>
         </table>
         @endif
-
-        <div class="total-pendapatan">
-            <span>Total Pendapatan Keseluruhan</span>
-            <span>{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_pendapatan']) }}</span>
-        </div>
 
         <p class="closing-text">Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
 

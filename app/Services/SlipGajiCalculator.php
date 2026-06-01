@@ -6,6 +6,16 @@ use Carbon\Carbon;
 
 class SlipGajiCalculator
 {
+    public static function tunjanganKeys(): array
+    {
+        return array_keys(config('slip.tunjangan', []));
+    }
+
+    public static function fasilitasKeys(): array
+    {
+        return array_keys(config('slip.fasilitas', []));
+    }
+
     public static function parseRupiah(mixed $value): float
     {
         if (is_numeric($value)) {
@@ -17,46 +27,74 @@ class SlipGajiCalculator
         return $cleaned !== '' ? (float) $cleaned : 0;
     }
 
+    public static function normalizeFasilitas(mixed $input): array
+    {
+        if (! is_array($input)) {
+            return [];
+        }
+
+        $allowed = self::fasilitasKeys();
+
+        return array_values(array_unique(array_filter(
+            $input,
+            fn ($key) => in_array($key, $allowed, true)
+        )));
+    }
+
+    public static function fasilitasFromLegacy(float $bpjs, float $makan, float $pensiun): array
+    {
+        $selected = [];
+
+        if ($bpjs > 0) {
+            $selected[] = 'bpjs';
+        }
+        if ($makan > 0) {
+            $selected[] = 'makan';
+        }
+        if ($pensiun > 0) {
+            $selected[] = 'pensiun';
+        }
+
+        return $selected;
+    }
+
     public static function calculate(array $data): array
     {
         $gajiPokok = (float) ($data['gaji_pokok'] ?? 0);
+        $jumlahKehadiran = max(1, (int) ($data['jumlah_kehadiran'] ?? 26));
+        $hadir = (int) ($data['hadir'] ?? 0);
+        $totalLembur = (float) ($data['total_lembur'] ?? ($data['lembur']['total'] ?? 0));
 
-        $tunjangan = [
-            'transport' => (float) ($data['tunj_transport'] ?? 0),
-            'kehadiran' => (float) ($data['tunj_kehadiran'] ?? 0),
-            'kinerja' => (float) ($data['tunj_kinerja'] ?? 0),
-            'jabatan' => (float) ($data['tunj_jabatan'] ?? 0),
-            'perawatan' => (float) ($data['tunj_perawatan'] ?? 0),
-            'operator' => (float) ($data['tunj_operator'] ?? 0),
-            'konsumsi' => (float) ($data['tunj_konsumsi'] ?? 0),
-        ];
+        $tunjanganBulanan = MonthlyTunjanganService::fromRequest($data);
+        $tunjanganHarian = [];
+        foreach (self::tunjanganKeys() as $key) {
+            $tunjanganHarian[$key] = $tunjanganBulanan[$key] / $jumlahKehadiran;
+        }
+
+        $totalTunjanganHarian = array_sum($tunjanganHarian);
+        $tunjanganEarned = $totalTunjanganHarian * $hadir;
 
         $potongan = [
             'angsuran' => (float) ($data['pot_angsuran'] ?? 0),
             'kasbon' => (float) ($data['pot_kasbon'] ?? 0),
             'lain_lain' => (float) ($data['pot_lain_lain'] ?? 0),
         ];
-
-        $totalTunjangan = array_sum($tunjangan);
         $totalPotongan = array_sum($potongan);
 
-        // THP = Gaji Pokok + Total Tunjangan (per bulan) - Potongan
-        $takeHomePay = $gajiPokok + $totalTunjangan - $totalPotongan;
+        // THP = Gaji Pokok + (Total Tunjangan per hari × Hari Hadir) + Lembur - Potongan
+        $takeHomePay = $gajiPokok + $tunjanganEarned + $totalLembur - $totalPotongan;
 
-        $bpjs = (float) ($data['bpjs_kesehatan'] ?? 0);
-        $makan = (float) ($data['makan_siang_malam'] ?? 0);
-        $pensiun = (float) ($data['pensiun'] ?? 0);
-        $totalFasilitas = $bpjs + $makan + $pensiun;
-        $totalPendapatan = $takeHomePay + $totalFasilitas;
+        $fasilitas = self::normalizeFasilitas($data['fasilitas'] ?? []);
 
         return [
-            'tunjangan' => $tunjangan,
+            'tunjangan' => $tunjanganHarian,
+            'tunjangan_bulanan' => $tunjanganBulanan,
+            'total_tunjangan' => $totalTunjanganHarian,
+            'tunjangan_earned' => $tunjanganEarned,
             'potongan' => $potongan,
-            'total_tunjangan' => $totalTunjangan,
             'total_potongan' => $totalPotongan,
             'take_home_pay' => $takeHomePay,
-            'total_fasilitas' => $totalFasilitas,
-            'total_pendapatan' => $totalPendapatan,
+            'fasilitas' => $fasilitas,
         ];
     }
 

@@ -44,11 +44,9 @@ class DashboardAnalytics
             'total_gaji_pokok' => $slips->sum('gaji_pokok'),
             'total_tunjangan' => $slips->sum('total_tunjangan'),
             'total_potongan' => $slips->sum('total_potongan'),
-            'total_fasilitas' => $slips->sum('total_fasilitas'),
+            'total_lembur' => $slips->sum('total_lembur'),
             'total_thp' => $slips->sum('take_home_pay'),
-            'total_pendapatan' => $slips->sum(fn ($s) => $s->resolvedTotalPendapatan()),
             'rata_thp' => $count > 0 ? $slips->avg('take_home_pay') : 0,
-            'rata_pendapatan' => $count > 0 ? $slips->avg(fn ($s) => $s->resolvedTotalPendapatan()) : 0,
         ];
 
         $emailStats = [
@@ -101,11 +99,11 @@ class DashboardAnalytics
     private static function compositionChart(Collection $slips): array
     {
         return [
-            'labels' => ['Gaji Pokok', 'Tunjangan', 'Fasilitas'],
+            'labels' => ['Gaji Pokok', 'Tunjangan/Hari', 'Lembur'],
             'values' => [
                 round($slips->sum('gaji_pokok')),
                 round($slips->sum('total_tunjangan')),
-                round($slips->sum('total_fasilitas')),
+                round($slips->sum('total_lembur')),
             ],
             'potongan' => round($slips->sum('total_potongan')),
         ];
@@ -116,7 +114,7 @@ class DashboardAnalytics
         return [
             'labels' => $slips->map(fn ($s) => self::shortName($s->employee->name))->values()->all(),
             'values' => $slips->map(fn ($s) => round($s->take_home_pay))->values()->all(),
-            'pendapatan' => $slips->map(fn ($s) => round($s->resolvedTotalPendapatan()))->values()->all(),
+            'lembur' => $slips->map(fn ($s) => round($s->total_lembur ?? 0))->values()->all(),
         ];
     }
 
@@ -187,7 +185,7 @@ class DashboardAnalytics
                 ->get();
 
             $thpValues[] = round($monthSlips->sum('take_home_pay'));
-            $pendapatanValues[] = round($monthSlips->sum(fn ($s) => $s->resolvedTotalPendapatan()));
+            $pendapatanValues[] = round($monthSlips->sum('total_lembur'));
             $slipCounts[] = $monthSlips->count();
 
             $cursor->addMonth();

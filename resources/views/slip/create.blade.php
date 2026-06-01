@@ -36,6 +36,7 @@
 <div id="slip-form-root"
      data-existing-url="{{ route('slip.existing') }}"
      data-lembur-weeks-url="{{ route('slip.lembur-weeks') }}"
+     data-monthly-tunjangan-url="{{ route('slip.monthly-tunjangan') }}"
      @if($preserveForm) data-preserve-form="1" @elseif(!empty($formData)) data-initial-form='@json($formData)' @endif
      class="grid lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2">
@@ -135,49 +136,50 @@
                 </div>
             </section>
 
-            {{-- Rincian Gaji --}}
+            {{-- Tunjangan Bulanan --}}
             <section class="card p-6">
-                <h2 class="text-base font-semibold text-slate-900 mb-4">4. Rincian Gaji</h2>
-                <div class="space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <label class="text-sm font-medium text-slate-700">Gaji Pokok <span class="text-slate-400 font-normal">(Per Bulan)</span></label>
-                        <div class="sm:col-span-2 rupiah-field">
-                            <span class="rupiah-prefix">Rp</span>
-                            <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
-                                value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
-                                class="rupiah-input calc-trigger">
-                        </div>
-                    </div>
+                <h2 class="text-base font-semibold text-slate-900 mb-1">4. Tunjangan Bulanan</h2>
+                <p class="text-xs text-slate-500 mb-4">Total per bulan untuk periode yang dipilih. Nilai per hari dihitung otomatis (total ÷ jumlah hari kerja).</p>
 
-                    @php
-                        $tunjanganFields = [
-                            'tunj_transport' => 'Tunjangan Transport',
-                            'tunj_kehadiran' => 'Tunjangan Kehadiran',
-                            'tunj_kinerja' => 'Tunjangan Kinerja',
-                            'tunj_jabatan' => 'Tunjangan Jabatan',
-                            'tunj_perawatan' => 'Tunjangan Perawatan',
-                            'tunj_operator' => 'Tunjangan Operator',
-                            'tunj_konsumsi' => 'Tunjangan Konsumsi',
-                        ];
-                    @endphp
+                <div class="hidden sm:grid sm:grid-cols-12 gap-3 mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">
+                    <div class="sm:col-span-5">Jenis Tunjangan</div>
+                    <div class="sm:col-span-4">Total Bulanan</div>
+                    <div class="sm:col-span-3">Per Hari</div>
+                </div>
 
-                    @foreach($tunjanganFields as $field => $label)
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <label class="text-sm text-slate-700">{{ $label }} <span class="text-slate-400">(Per Bulan)</span></label>
-                        <div class="sm:col-span-2 rupiah-field">
+                <div class="space-y-3" id="tunjangan-rows">
+                    @foreach(config('slip.tunjangan') as $key => $label)
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row" data-tunj-key="{{ $key }}">
+                        <div class="sm:col-span-5 text-sm text-slate-700">{{ $label }}</div>
+                        <div class="sm:col-span-4 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
-                            <input type="text" inputmode="numeric" name="{{ $field }}" id="{{ $field }}"
-                                value="{{ $formatFormRupiah($field, 0) }}" placeholder="0"
-                                class="rupiah-input calc-trigger">
+                            <input type="text" inputmode="numeric" name="tunj_bulanan_{{ $key }}" id="tunj_bulanan_{{ $key }}"
+                                value="{{ $formatFormRupiah('tunj_bulanan_'.$key, 0) }}" placeholder="0"
+                                class="rupiah-input calc-trigger tunj-bulanan-input">
                         </div>
+                        <div class="sm:col-span-3 text-sm font-medium text-slate-600 tunj-harian-display" id="tunj_harian_{{ $key }}">Rp 0</div>
                     </div>
                     @endforeach
                 </div>
             </section>
 
+            {{-- Gaji Pokok --}}
+            <section class="card p-6">
+                <h2 class="text-base font-semibold text-slate-900 mb-4">5. Gaji Pokok</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                    <label class="text-sm font-medium text-slate-700">Gaji Pokok <span class="text-slate-400 font-normal">(Per Bulan)</span></label>
+                    <div class="sm:col-span-2 rupiah-field">
+                        <span class="rupiah-prefix">Rp</span>
+                        <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
+                            value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
+                            class="rupiah-input calc-trigger">
+                    </div>
+                </div>
+            </section>
+
             {{-- Potongan --}}
             <section class="card p-6 border-red-100">
-                <h2 class="text-base font-semibold text-slate-900 mb-4">5. Potongan</h2>
+                <h2 class="text-base font-semibold text-slate-900 mb-4">6. Potongan</h2>
                 <div class="space-y-3">
                     @php
                         $potonganFields = [
@@ -202,35 +204,23 @@
 
             {{-- Fasilitas --}}
             <section class="card p-6">
-                <h2 class="text-base font-semibold text-slate-900 mb-4">6. Fasilitas</h2>
+                <h2 class="text-base font-semibold text-slate-900 mb-1">7. Fasilitas</h2>
+                <p class="text-xs text-slate-500 mb-4">Centang fasilitas yang diperoleh karyawan. Hanya nama fasilitas yang tampil di slip.</p>
                 <div class="space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <label class="text-sm text-slate-700">BPJS Kesehatan <span class="text-slate-400">(Per Bulan)</span></label>
-                        <div class="sm:col-span-2 rupiah-field">
-                            <span class="rupiah-prefix">Rp</span>
-                            <input type="text" inputmode="numeric" name="bpjs_kesehatan" id="bpjs_kesehatan"
-                                value="{{ $formatFormRupiah('bpjs_kesehatan', 186222) }}" placeholder="0"
-                                class="rupiah-input calc-trigger">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <label class="text-sm text-slate-700">Makan Siang/Malam <span class="text-slate-400">(Per Bulan)</span></label>
-                        <div class="sm:col-span-2 rupiah-field">
-                            <span class="rupiah-prefix">Rp</span>
-                            <input type="text" inputmode="numeric" name="makan_siang_malam" id="makan_siang_malam"
-                                value="{{ $formatFormRupiah('makan_siang_malam', 0) }}" placeholder="0"
-                                class="rupiah-input calc-trigger">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <label class="text-sm text-slate-700">Pensiun <span class="text-slate-400">(Per Bulan)</span></label>
-                        <div class="sm:col-span-2 rupiah-field">
-                            <span class="rupiah-prefix">Rp</span>
-                            <input type="text" inputmode="numeric" name="pensiun" id="pensiun"
-                                value="{{ $formatFormRupiah('pensiun', 0) }}" placeholder="0"
-                                class="rupiah-input calc-trigger">
-                        </div>
-                    </div>
+                    @php
+                        $selectedFasilitas = (array) $formValue('fasilitas', []);
+                        if (empty($selectedFasilitas) && !$preserveForm && empty($formData)) {
+                            $selectedFasilitas = ['bpjs'];
+                        }
+                    @endphp
+                    @foreach(config('slip.fasilitas') as $key => $label)
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="fasilitas[]" value="{{ $key }}"
+                            @checked(in_array($key, $selectedFasilitas, true))
+                            class="rounded border-slate-300 text-maroon-900 focus:ring-maroon-900 calc-trigger">
+                        <span class="text-sm text-slate-700">{{ $label }}</span>
+                    </label>
+                    @endforeach
                 </div>
             </section>
 
@@ -253,32 +243,28 @@
             <h2 class="text-base font-semibold text-slate-900 mb-4">Ringkasan Otomatis</h2>
             <dl class="space-y-3 text-sm">
                 <div class="flex justify-between">
-                    <dt class="text-slate-500">Total Tunjangan</dt>
-                    <dd id="summary-tunj" class="font-medium">Rp 0</dd>
+                    <dt class="text-slate-500">Total Tunjangan / Hari</dt>
+                    <dd id="summary-tunj-harian" class="font-medium">Rp 0</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Tunjangan × Hadir</dt>
+                    <dd id="summary-tunj-earned" class="font-medium">Rp 0</dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-slate-500">Total Potongan</dt>
                     <dd id="summary-potongan" class="font-medium text-red-600">Rp 0</dd>
-                </div>
-                <div class="border-t border-slate-200 pt-3 flex justify-between">
-                    <dt class="text-slate-900 font-semibold">Take Home Pay</dt>
-                    <dd id="summary-thp" class="font-bold text-maroon-900 text-lg">Rp 0</dd>
-                </div>
-                <div class="flex justify-between">
-                    <dt class="text-slate-500">Total Fasilitas</dt>
-                    <dd id="summary-fasilitas" class="font-medium">Rp 0</dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-slate-500">Total Lembur</dt>
                     <dd id="summary-lembur-sidebar" class="font-medium text-amber-700">Rp 0</dd>
                 </div>
                 <div class="border-t border-slate-200 pt-3 flex justify-between">
-                    <dt class="text-slate-900 font-semibold">Total Pendapatan</dt>
-                    <dd id="summary-total" class="font-bold text-green-600 text-lg">Rp 0</dd>
+                    <dt class="text-slate-900 font-semibold">Take Home Pay</dt>
+                    <dd id="summary-thp" class="font-bold text-maroon-900 text-lg">Rp 0</dd>
                 </div>
             </dl>
             <p class="mt-4 text-xs text-slate-400">
-                Total Pendapatan = THP + Fasilitas + Lembur
+                THP = Gaji Pokok + (Total Tunjangan/Hari × Hadir) + Lembur − Potongan
             </p>
         </div>
     </div>

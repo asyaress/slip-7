@@ -11,19 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveButton = document.getElementById('btn-save-slip');
     const existingUrl = root?.dataset.existingUrl;
     const lemburWeeksUrl = root?.dataset.lemburWeeksUrl;
+    const monthlyTunjanganUrl = root?.dataset.monthlyTunjanganUrl;
     const preserveForm = root?.dataset.preserveForm === '1';
 
     const rupiahFields = [
         'gaji_pokok',
-        'tunj_transport', 'tunj_kehadiran', 'tunj_kinerja', 'tunj_jabatan',
-        'tunj_perawatan', 'tunj_operator', 'tunj_konsumsi',
         'pot_angsuran', 'pot_kasbon', 'pot_lain_lain',
-        'bpjs_kesehatan', 'makan_siang_malam', 'pensiun',
     ];
+
+    const tunjanganBulananIds = Array.from(document.querySelectorAll('.tunj-bulanan-input'))
+        .map(el => el.id);
 
     const numberFields = [
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
     ];
+
+    const potonganIds = ['pot_angsuran', 'pot_kasbon', 'pot_lain_lain'];
 
     function formatNominalInput(value) {
         const num = parseFloat(value) || 0;
@@ -49,14 +52,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (el.classList.contains('rupiah-input')) {
             el.value = formatNominalInput(value);
+        } else if (el.type === 'checkbox') {
+            el.checked = !!value;
         } else {
             el.value = value ?? '';
         }
     }
 
+    function setFasilitasCheckboxes(selected) {
+        const values = Array.isArray(selected) ? selected : [];
+        document.querySelectorAll('input[name="fasilitas[]"]').forEach(el => {
+            el.checked = values.includes(el.value);
+        });
+    }
+
     function fillForm(data) {
         rupiahFields.forEach(field => setFieldValue(field, data[field] ?? 0));
+        tunjanganBulananIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         numberFields.forEach(field => setFieldValue(field, data[field] ?? 0));
+        setFasilitasCheckboxes(data.fasilitas ?? []);
         calculate();
     }
 
@@ -98,6 +112,37 @@ document.addEventListener('DOMContentLoaded', () => {
         initRupiahInputs(container);
         bindLemburInputs();
         calculate();
+    }
+
+    async function fetchMonthlyTunjangan() {
+        const bulan = bulanSelect?.value;
+        const tahun = tahunInput?.value;
+
+        if (!monthlyTunjanganUrl || !bulan || !tahun) {
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams({ bulan, tahun });
+            const response = await fetch(`${monthlyTunjanganUrl}?${params.toString()}`, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const result = await response.json();
+            const fields = result.fields ?? {};
+
+            Object.entries(fields).forEach(([field, value]) => {
+                setFieldValue(field, value);
+            });
+
+            calculate();
+        } catch {
+            // ignore fetch errors
+        }
     }
 
     async function fetchLemburWeeks() {
@@ -175,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function onPeriodChange() {
         const found = await checkExistingSlip();
         if (!found) {
-            await fetchLemburWeeks();
+            await Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]);
         }
     }
 
@@ -206,19 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (employeeSelect?.value && bulanSelect?.value && tahunInput?.value) {
             onPeriodChange();
+        } else if (bulanSelect?.value && tahunInput?.value) {
+            fetchMonthlyTunjangan();
         } else if (saveButton?.textContent.includes('Perbarui')) {
             setEditMode(true);
         }
     }
 
     initRupiahInputs();
-
-    const tunjanganIds = [
-        'tunj_transport', 'tunj_kehadiran', 'tunj_kinerja', 'tunj_jabatan',
-        'tunj_perawatan', 'tunj_operator', 'tunj_konsumsi',
-    ];
-    const potonganIds = ['pot_angsuran', 'pot_kasbon', 'pot_lain_lain'];
-    const fasilitasIds = ['bpjs_kesehatan', 'makan_siang_malam', 'pensiun'];
 
     function sumFields(ids) {
         return ids.reduce((sum, id) => sum + parseRupiah(document.getElementById(id)?.value), 0);
@@ -244,19 +284,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculate() {
         const gajiPokok = parseRupiah(document.getElementById('gaji_pokok')?.value);
-        const totalTunj = sumFields(tunjanganIds);
-        const totalPotongan = sumFields(potonganIds);
-        const thp = gajiPokok + totalTunj - totalPotongan;
-        const totalFasilitas = sumFields(fasilitasIds);
-        const totalLembur = calculateLembur();
-        const totalPendapatan = thp + totalFasilitas + totalLembur;
+        const jumlahKehadiran = Math.max(1, parseInt(document.getElementById('jumlah_kehadiran')?.value, 10) || 26);
+        const hadir = parseInt(document.getElementById('hadir')?.value, 10) || 0;
 
-        document.getElementById('summary-tunj').textContent = formatRupiahDisplay(totalTunj);
+        let totalTunjBulanan = 0;
+        let totalTunjHarian = 0;
+
+        tunjanganBulananIds.forEach(id => {
+            const bulanan = parseRupiah(document.getElementById(id)?.value);
+            const harian = bulanan / jumlahKehadiran;
+            totalTunjBulanan += bulanan;
+            totalTunjHarian += harian;
+
+            const display = document.getElementById(id.replace('tunj_bulanan_', 'tunj_harian_'));
+            if (display) {
+                display.textContent = formatRupiahDisplay(harian);
+            }
+        });
+
+        const tunjanganEarned = totalTunjHarian * hadir;
+        const totalPotongan = sumFields(potonganIds);
+        const totalLembur = calculateLembur();
+        const thp = gajiPokok + tunjanganEarned + totalLembur - totalPotongan;
+
+        const summaryTunjHarian = document.getElementById('summary-tunj-harian');
+        const summaryTunjEarned = document.getElementById('summary-tunj-earned');
+
+        if (summaryTunjHarian) {
+            summaryTunjHarian.textContent = formatRupiahDisplay(totalTunjHarian);
+        }
+        if (summaryTunjEarned) {
+            summaryTunjEarned.textContent = formatRupiahDisplay(tunjanganEarned);
+        }
+
         document.getElementById('summary-potongan').textContent = formatRupiahDisplay(totalPotongan);
         document.getElementById('summary-thp').textContent = formatRupiahDisplay(thp);
-        document.getElementById('summary-fasilitas').textContent = formatRupiahDisplay(totalFasilitas);
         updateLemburSummary(totalLembur);
-        document.getElementById('summary-total').textContent = formatRupiahDisplay(totalPendapatan);
     }
 
     function bindLemburInputs() {
@@ -270,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.calc-trigger').forEach(el => {
         el.addEventListener('input', calculate);
+        el.addEventListener('change', calculate);
         el.addEventListener('rupiah-change', calculate);
     });
 
