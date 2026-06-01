@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-C9MQnGD9.css",
+    "file": "assets/app-BQgNhyWu.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -15,7 +15,7 @@
     "isEntry": true
   },
   "resources/js/slip-form.js": {
-    "file": "assets/slip-form-DFRUYXW3.js",
+    "file": "assets/slip-form-YTYPjFQH.js",
     "name": "slip-form",
     "src": "resources/js/slip-form.js",
     "isEntry": true

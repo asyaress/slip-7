@@ -13,7 +13,14 @@ return [
         'administrasi' => 'Tunjangan Administrasi',
         'finishing' => 'Tunjangan Finishing',
         'pengambilan' => 'Tunjangan Pengambilan',
-        'kontrakan' => 'Tunjangan Kontrakan',
+        'tempat_tinggal' => 'Tunjangan Tempat Tinggal',
+    ],
+
+    /*
+    | Tunjangan flat per bulan (tanpa per-hari, masuk THP penuh setiap bulan).
+    */
+    'tunjangan_bulanan_only' => [
+        'tempat_tinggal',
     ],
 
     'fasilitas' => [

@@ -104,6 +104,12 @@ class SalarySlip extends Model
         $days = max(1, (int) $this->jumlah_kehadiran);
 
         foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
+            if (\App\Services\SlipGajiCalculator::isTunjanganBulananOnly($key)) {
+                $daily[$key] = 0;
+
+                continue;
+            }
+
             $daily[$key] = ($monthly[$key] ?? 0) / $days;
         }
 
@@ -177,8 +183,18 @@ class SalarySlip extends Model
         $jumlahKehadiran = max(1, (int) $this->jumlah_kehadiran);
         $tunjanganBulanan = $this->resolvedTunjanganBulanan();
         $tunjanganHarian = $this->resolvedTunjanganHarian();
-        $totalTunjanganHarian = array_sum($tunjanganHarian);
-        $tunjanganEarned = $totalTunjanganHarian * (int) $this->hadir;
+        $totalTunjanganHarian = 0;
+        $tunjanganFlatBulanan = 0;
+
+        foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
+            if (\App\Services\SlipGajiCalculator::isTunjanganBulananOnly($key)) {
+                $tunjanganFlatBulanan += (float) ($tunjanganBulanan[$key] ?? 0);
+            } else {
+                $totalTunjanganHarian += (float) ($tunjanganHarian[$key] ?? 0);
+            }
+        }
+
+        $tunjanganEarned = ($totalTunjanganHarian * (int) $this->hadir) + $tunjanganFlatBulanan;
 
         $totalLembur = (float) ($this->total_lembur ?? 0);
         $resolvedPay = \App\Services\SlipGajiCalculator::resolveThpAndPendapatan(

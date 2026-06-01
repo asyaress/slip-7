@@ -47,10 +47,17 @@ class MonthlyTunjanganService
         $fields = [];
         $days = max(1, $jumlahKehadiran);
 
+        $bulananOnly = config('slip.tunjangan_bulanan_only', []);
+
         foreach (self::keys() as $key) {
             $monthly = (float) ($monthlyRates[$key] ?? 0);
             $fields["tunj_bulanan_{$key}"] = $monthly;
-            $fields["tunj_harian_{$key}"] = $monthly / $days;
+
+            if (in_array($key, $bulananOnly, true)) {
+                $fields["tunj_harian_{$key}"] = 0;
+            } else {
+                $fields["tunj_harian_{$key}"] = $monthly / $days;
+            }
         }
 
         return $fields;

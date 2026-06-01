@@ -153,7 +153,7 @@
             {{-- Tunjangan --}}
             <section class="card p-6">
                 <h2 class="text-base font-semibold text-slate-900 mb-1">5. Tunjangan</h2>
-                <p class="text-xs text-slate-500 mb-4">Isi nominal <strong>per hari</strong>. Total bulanan dihitung otomatis (per hari × jumlah hari kerja) dan bisa diubah manual jika perlu.</p>
+                <p class="text-xs text-slate-500 mb-4">Isi nominal <strong>per hari</strong> untuk tunjangan harian. Total bulanan dihitung otomatis dan bisa diubah manual. Tunjangan tempat tinggal diisi <strong>langsung per bulan</strong>.</p>
 
                 <div class="hidden sm:grid sm:grid-cols-12 gap-3 mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">
                     <div class="sm:col-span-5">Jenis Tunjangan</div>
@@ -161,8 +161,21 @@
                     <div class="sm:col-span-4">Total Bulanan</div>
                 </div>
 
+                @php $tunjanganBulananOnly = config('slip.tunjangan_bulanan_only', []); @endphp
                 <div class="space-y-3" id="tunjangan-rows">
                     @foreach(config('slip.tunjangan') as $key => $label)
+                    @if(in_array($key, $tunjanganBulananOnly, true))
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row tunj-monthly-only-row" data-tunj-key="{{ $key }}" data-tunj-monthly-only="1">
+                        <div class="sm:col-span-5 text-sm text-slate-700">{{ $label }}</div>
+                        <div class="sm:col-span-7 rupiah-field">
+                            <span class="rupiah-prefix">Rp</span>
+                            <input type="text" inputmode="numeric" name="tunj_bulanan_{{ $key }}" id="tunj_bulanan_{{ $key }}"
+                                value="{{ $formatFormRupiah('tunj_bulanan_'.$key, 0) }}" placeholder="0"
+                                class="rupiah-input calc-trigger tunj-bulanan-input tunj-monthly-only-input">
+                            <input type="hidden" name="tunj_harian_{{ $key }}" id="tunj_harian_{{ $key }}" value="0">
+                        </div>
+                    </div>
+                    @else
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row" data-tunj-key="{{ $key }}" data-bulanan-overridden="0">
                         <div class="sm:col-span-5 text-sm text-slate-700">{{ $label }}</div>
                         <div class="sm:col-span-3 rupiah-field">
@@ -178,6 +191,7 @@
                                 class="rupiah-input calc-trigger tunj-bulanan-input">
                         </div>
                     </div>
+                    @endif
                     @endforeach
                 </div>
 
@@ -260,6 +274,10 @@
                     <dt class="text-slate-500">Tunjangan × Hadir</dt>
                     <dd id="summary-tunj-earned" class="font-medium">Rp 0</dd>
                 </div>
+                <div class="flex justify-between hidden" id="summary-tunj-flat-row">
+                    <dt class="text-slate-500">Tunj. Tempat Tinggal</dt>
+                    <dd id="summary-tunj-flat" class="font-medium">Rp 0</dd>
+                </div>
                 <div class="flex justify-between">
                     <dt class="text-slate-500">Total Potongan</dt>
                     <dd id="summary-potongan" class="font-medium text-red-600">Rp 0</dd>
@@ -278,7 +296,7 @@
                 </div>
             </dl>
             <p class="mt-4 text-xs text-slate-400">
-                THP = Gaji Pokok + (Total Tunjangan/Hari × Hadir) − Potongan<br>
+                THP = Gaji Pokok + (Tunjangan/Hari × Hadir) + Tunj. Tempat Tinggal − Potongan<br>
                 Total Pendapatan = THP + Lembur
             </p>
         </div>

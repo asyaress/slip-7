@@ -19,10 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
         'pot_angsuran', 'pot_kasbon', 'pot_lain_lain',
     ];
 
-    const tunjanganHarianIds = Array.from(document.querySelectorAll('.tunj-harian-input'))
+    const tunjanganHarianIds = Array.from(document.querySelectorAll('.tunj-row:not([data-tunj-monthly-only="1"]) .tunj-harian-input'))
         .map(el => el.id);
 
     const tunjanganBulananIds = Array.from(document.querySelectorAll('.tunj-bulanan-input'))
+        .map(el => el.id);
+
+    const tunjanganMonthlyOnlyIds = Array.from(document.querySelectorAll('.tunj-monthly-only-input'))
         .map(el => el.id);
 
     const numberFields = [
@@ -78,6 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.tunj-row').forEach(row => {
             const key = row.dataset.tunjKey;
+            if (row.dataset.tunjMonthlyOnly === '1') {
+                return;
+            }
+
             const harian = parseRupiah(document.getElementById(`tunj_harian_${key}`)?.value);
             const bulanan = parseRupiah(document.getElementById(`tunj_bulanan_${key}`)?.value);
             const autoBulanan = harian * jumlahKehadiran;
@@ -320,6 +327,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let totalTunjBulanan = 0;
         let totalTunjHarian = 0;
+        let tunjanganFlatBulanan = 0;
+
+        tunjanganMonthlyOnlyIds.forEach(bulananId => {
+            const amount = parseRupiah(document.getElementById(bulananId)?.value);
+            tunjanganFlatBulanan += amount;
+            totalTunjBulanan += amount;
+        });
 
         tunjanganHarianIds.forEach(harianId => {
             const key = harianId.replace('tunj_harian_', '');
@@ -346,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const tunjanganEarned = totalTunjHarian * hadir;
+        const tunjanganEarned = (totalTunjHarian * hadir) + tunjanganFlatBulanan;
         const totalPotongan = sumFields(potonganIds);
         const totalLembur = calculateLembur();
         const thp = gajiPokok + tunjanganEarned - totalPotongan;
@@ -355,12 +369,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryTunjHarian = document.getElementById('summary-tunj-harian');
         const summaryTunjEarned = document.getElementById('summary-tunj-earned');
         const summaryTunjBulananTotal = document.getElementById('summary-tunj-bulanan-total');
+        const summaryTunjFlatRow = document.getElementById('summary-tunj-flat-row');
+        const summaryTunjFlat = document.getElementById('summary-tunj-flat');
 
         if (summaryTunjHarian) {
             summaryTunjHarian.textContent = formatRupiahDisplay(totalTunjHarian);
         }
         if (summaryTunjEarned) {
-            summaryTunjEarned.textContent = formatRupiahDisplay(tunjanganEarned);
+            summaryTunjEarned.textContent = formatRupiahDisplay(totalTunjHarian * hadir);
+        }
+        if (summaryTunjFlatRow && summaryTunjFlat) {
+            summaryTunjFlatRow.classList.toggle('hidden', tunjanganFlatBulanan <= 0);
+            summaryTunjFlat.textContent = formatRupiahDisplay(tunjanganFlatBulanan);
         }
         if (summaryTunjBulananTotal) {
             summaryTunjBulananTotal.textContent = formatRupiahDisplay(totalTunjBulanan);

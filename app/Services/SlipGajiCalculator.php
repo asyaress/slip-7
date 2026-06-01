@@ -11,6 +11,16 @@ class SlipGajiCalculator
         return array_keys(config('slip.tunjangan', []));
     }
 
+    public static function tunjanganBulananOnlyKeys(): array
+    {
+        return config('slip.tunjangan_bulanan_only', []);
+    }
+
+    public static function isTunjanganBulananOnly(string $key): bool
+    {
+        return in_array($key, self::tunjanganBulananOnlyKeys(), true);
+    }
+
     public static function fasilitasKeys(): array
     {
         return array_keys(config('slip.fasilitas', []));
@@ -68,6 +78,14 @@ class SlipGajiCalculator
         $bulanan = [];
 
         foreach (self::tunjanganKeys() as $key) {
+            if (self::isTunjanganBulananOnly($key)) {
+                $b = self::parseRupiah($data["tunj_bulanan_{$key}"] ?? null);
+                $bulanan[$key] = $b;
+                $harian[$key] = 0;
+
+                continue;
+            }
+
             $h = self::parseRupiah($data["tunj_harian_{$key}"] ?? null);
             $b = self::parseRupiah($data["tunj_bulanan_{$key}"] ?? null);
             $hasHarian = array_key_exists("tunj_harian_{$key}", $data);
@@ -103,8 +121,18 @@ class SlipGajiCalculator
         $tunjanganHarian = $tunjanganResolved['harian'];
         $tunjanganBulanan = $tunjanganResolved['bulanan'];
 
-        $totalTunjanganHarian = array_sum($tunjanganHarian);
-        $tunjanganEarned = $totalTunjanganHarian * $hadir;
+        $totalTunjanganHarian = 0;
+        $tunjanganFlatBulanan = 0;
+
+        foreach (self::tunjanganKeys() as $key) {
+            if (self::isTunjanganBulananOnly($key)) {
+                $tunjanganFlatBulanan += (float) ($tunjanganBulanan[$key] ?? 0);
+            } else {
+                $totalTunjanganHarian += (float) ($tunjanganHarian[$key] ?? 0);
+            }
+        }
+
+        $tunjanganEarned = ($totalTunjanganHarian * $hadir) + $tunjanganFlatBulanan;
 
         $potongan = [
             'angsuran' => (float) ($data['pot_angsuran'] ?? 0),
@@ -169,7 +197,7 @@ class SlipGajiCalculator
         foreach (config('slip.tunjangan', []) as $key => $label) {
             $bulanan = (float) ($tunjBulanan[$key] ?? 0);
 
-            if ($bulanan <= 0) {
+            if ($bulanan <= 0 && ! self::isTunjanganBulananOnly($key)) {
                 $harian = (float) ($slip['tunjangan'][$key] ?? 0);
                 if ($harian > 0) {
                     $bulanan = $harian * $jumlahHariKerja;
