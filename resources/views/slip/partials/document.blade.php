@@ -178,10 +178,21 @@
         </div>
         @endif
 
+        @php
+            $thpAmount = (float) ($slip['take_home_pay'] ?? 0);
+            $lemburAmount = (float) ($slip['total_lembur'] ?? 0);
+            $totalPendapatan = (float) ($slip['total_pendapatan'] ?? ($thpAmount + $lemburAmount));
+        @endphp
         <div class="slip-section">
         <div class="total-pendapatan">
-            <span>Total Pendapatan (<em>Take Home Pay</em> + Lembur)</span>
-            <span>{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['total_pendapatan'] ?? ($slip['take_home_pay'] + ($slip['total_lembur'] ?? 0))) }}</span>
+            <div class="total-pendapatan-info">
+                <div class="total-pendapatan-title">Total Pendapatan</div>
+                <div class="total-pendapatan-breakdown">
+                    <em>Take Home Pay</em> {{ \App\Services\SlipGajiCalculator::formatRupiah($thpAmount) }}
+                    + Lembur {{ \App\Services\SlipGajiCalculator::formatRupiah($lemburAmount) }}
+                </div>
+            </div>
+            <div class="total-pendapatan-amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($totalPendapatan) }}</div>
         </div>
         </div>
 

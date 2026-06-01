@@ -226,6 +226,28 @@
         font-size: 11pt;
     }
 
+    .slip-page .total-pendapatan-info {
+        flex: 1;
+        padding-right: 12px;
+    }
+
+    .slip-page .total-pendapatan-title {
+        line-height: 1.35;
+    }
+
+    .slip-page .total-pendapatan-breakdown {
+        font-size: 9.5pt;
+        font-weight: normal;
+        color: #444;
+        line-height: 1.45;
+        margin-top: 3px;
+    }
+
+    .slip-page .total-pendapatan-amount {
+        font-size: 12pt;
+        white-space: nowrap;
+    }
+
     .slip-page .deduction {
         color: #b91c1c;
     }

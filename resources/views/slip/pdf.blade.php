@@ -183,10 +183,44 @@
             margin: 8px 0;
         }
 
-        .thp-box > span,
-        .total-pendapatan > span {
+        .thp-box > span {
             display: table-cell;
             vertical-align: middle;
+        }
+
+        .total-pendapatan {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 7px 10px;
+            margin: 8px 0;
+            font-size: 10pt;
+        }
+
+        .total-pendapatan-info {
+            display: table-cell;
+            vertical-align: middle;
+            width: 62%;
+            padding-right: 10px;
+        }
+
+        .total-pendapatan-title {
+            line-height: 1.35;
+        }
+
+        .total-pendapatan-breakdown {
+            font-size: 9pt;
+            font-weight: normal;
+            color: #444;
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+
+        .total-pendapatan-amount {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+            white-space: nowrap;
+            font-size: 11pt;
         }
 
         .thp-box > span:first-child {
@@ -202,24 +236,6 @@
             color: #42091a;
             background: #fef08a;
             padding: 3px 8px;
-        }
-
-        .total-pendapatan {
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-            padding: 7px 10px;
-            margin: 8px 0;
-            font-size: 10pt;
-        }
-
-        .total-pendapatan > span:first-child {
-            width: 62%;
-            padding-right: 10px;
-        }
-
-        .total-pendapatan > span:last-child {
-            text-align: right;
-            white-space: nowrap;
         }
 
         .deduction {
