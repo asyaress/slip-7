@@ -12,6 +12,11 @@ class SlipGajiBuilder
     {
         $bulan = (int) $validated['bulan'];
         $tahun = (int) $validated['tahun'];
+        $lembur = $validated['lembur'] ?? ['weeks' => [], 'total' => 0];
+        $totalLembur = (float) ($lembur['total'] ?? 0);
+
+        $validated['lembur'] = $lembur;
+        $validated['total_lembur'] = $totalLembur;
 
         $calculation = SlipGajiCalculator::calculate($validated);
 
@@ -52,8 +57,8 @@ class SlipGajiBuilder
             'sakit_izin' => (int) ($validated['sakit_izin'] ?? 0),
             'tidak_hadir' => (int) ($validated['tidak_hadir'] ?? 0),
             'fasilitas' => $calculation['fasilitas'],
-            'lembur' => $validated['lembur'] ?? ['weeks' => [], 'total' => 0],
-            'total_lembur' => $validated['total_lembur'],
+            'lembur' => $lembur,
+            'total_lembur' => $totalLembur,
             'total_tunjangan' => $calculation['total_tunjangan'],
             'total_potongan' => $calculation['total_potongan'],
             'take_home_pay' => $calculation['take_home_pay'],
