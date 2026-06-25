@@ -97,15 +97,29 @@
                         <label for="bulan" class="block text-sm font-medium text-slate-700 mb-1">Bulan</label>
                         <select name="bulan" id="bulan" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             @foreach(['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $i => $nama)
-                                <option value="{{ $i + 1 }}" @selected($formValue('bulan', now()->month) == $i + 1)>{{ $nama }}</option>
+                                <option value="{{ $i + 1 }}" @selected($formValue('bulan', request('bulan', now()->month)) == $i + 1)>{{ $nama }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="tahun" class="block text-sm font-medium text-slate-700 mb-1">Tahun</label>
-                        <input type="number" name="tahun" id="tahun" value="{{ $formValue('tahun', now()->year) }}" min="2020" max="2100" required
+                        <input type="number" name="tahun" id="tahun" value="{{ $formValue('tahun', request('tahun', now()->year)) }}" min="2020" max="2100" required
                             class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-700">Copy data slip bulan sebelumnya</p>
+                        <p id="copy-previous-help" class="text-xs text-slate-500">Salin semua slip dari periode sebelumnya ke bulan yang dipilih.</p>
+                    </div>
+                    <form id="copy-previous-form" action="{{ route('slip.copy-previous') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="bulan" id="copy_previous_bulan" value="{{ $formValue('bulan', request('bulan', now()->month)) }}">
+                        <input type="hidden" name="tahun" id="copy_previous_tahun" value="{{ $formValue('tahun', request('tahun', now()->year)) }}">
+                        <button type="submit" id="btn-copy-previous" class="btn-secondary w-full sm:w-auto">
+                            Copy Slip Bulan Sebelumnya
+                        </button>
+                    </form>
                 </div>
             </section>
 

@@ -104,6 +104,22 @@ class SlipGajiBuilder
         return $saved;
     }
 
+    public static function copySlipToPeriod(SalarySlip $sourceSlip, int $bulan, int $tahun): SalarySlip
+    {
+        $sourceSlip->loadMissing('employee');
+        $employee = $sourceSlip->employee;
+
+        $formInputs = $sourceSlip->toFormInputs();
+        $formInputs['employee_id'] = $employee->id;
+        $formInputs['bulan'] = $bulan;
+        $formInputs['tahun'] = $tahun;
+        $formInputs['lembur'] = self::mapLemburToPeriod($sourceSlip, $bulan, $tahun);
+
+        $slip = self::buildFromValidated($formInputs, $employee);
+
+        return self::saveSlip($slip, $employee);
+    }
+
     public static function attachQrSignature(array $slip, ?int $slipId = null): array
     {
         $qrPath = QrSignatureService::generate($slip, $slipId);
@@ -111,5 +127,22 @@ class SlipGajiBuilder
         $slip['qr_signature_path'] = $qrPath;
 
         return $slip;
+    }
+
+    private static function mapLemburToPeriod(SalarySlip $sourceSlip, int $bulan, int $tahun): array
+    {
+        $weeks = array_map(function (array $week): array {
+            return [
+                'minggu' => (int) $week['minggu'],
+                'periode' => $week['periode'],
+                'nominal' => (float) ($week['nominal'] ?? 0),
+                'status' => LemburWeekService::normalizeStatus($week['status'] ?? null),
+            ];
+        }, LemburWeekService::weeksForForm($bulan, $tahun, $sourceSlip->lembur));
+
+        return [
+            'weeks' => $weeks,
+            'total' => array_sum(array_column($weeks, 'nominal')),
+        ];
     }
 }

@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const tahunInput = document.getElementById('tahun');
     const existingNotice = document.getElementById('existing-slip-notice');
     const saveButton = document.getElementById('btn-save-slip');
+    const copyPreviousForm = document.getElementById('copy-previous-form');
+    const copyPreviousButton = document.getElementById('btn-copy-previous');
+    const copyPreviousBulan = document.getElementById('copy_previous_bulan');
+    const copyPreviousTahun = document.getElementById('copy_previous_tahun');
+    const copyPreviousHelp = document.getElementById('copy-previous-help');
     const existingUrl = root?.dataset.existingUrl;
     const lemburWeeksUrl = root?.dataset.lemburWeeksUrl;
     const monthlyTunjanganUrl = root?.dataset.monthlyTunjanganUrl;
@@ -37,6 +42,38 @@ document.addEventListener('DOMContentLoaded', () => {
     function formatNominalInput(value) {
         const num = parseFloat(value) || 0;
         return num > 0 ? Math.round(num).toLocaleString('id-ID') : '';
+    }
+
+    function getSelectedPeriod() {
+        return {
+            bulan: parseInt(bulanSelect?.value, 10) || 0,
+            tahun: parseInt(tahunInput?.value, 10) || 0,
+        };
+    }
+
+    function formatPeriodLabel(month, year) {
+        if (!month || !year) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat('id-ID', {
+            month: 'long',
+            year: 'numeric',
+        }).format(new Date(year, month - 1, 1));
+    }
+
+    function getPreviousPeriod(month, year) {
+        if (!month || !year) {
+            return null;
+        }
+
+        const date = new Date(year, month - 1, 1);
+        date.setMonth(date.getMonth() - 1);
+
+        return {
+            bulan: date.getMonth() + 1,
+            tahun: date.getFullYear(),
+        };
     }
 
     function updateEmployeeInfo() {
@@ -255,9 +292,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function onPeriodChange() {
+        syncCopyPreviousForm();
         const found = await checkExistingSlip();
         if (!found) {
             await Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]);
+        }
+    }
+
+    function syncCopyPreviousForm() {
+        const { bulan, tahun } = getSelectedPeriod();
+        const previous = getPreviousPeriod(bulan, tahun);
+
+        if (copyPreviousBulan) {
+            copyPreviousBulan.value = bulan || '';
+        }
+
+        if (copyPreviousTahun) {
+            copyPreviousTahun.value = tahun || '';
+        }
+
+        if (copyPreviousButton) {
+            copyPreviousButton.disabled = !bulan || !tahun;
+        }
+
+        if (copyPreviousHelp) {
+            if (!previous) {
+                copyPreviousHelp.textContent = 'Pilih bulan dan tahun tujuan terlebih dahulu.';
+            } else {
+                copyPreviousHelp.textContent = `Salin semua slip dari ${formatPeriodLabel(previous.bulan, previous.tahun)} ke ${formatPeriodLabel(bulan, tahun)}. Jika slip tujuan sudah ada, datanya akan diperbarui.`;
+            }
         }
     }
 
@@ -270,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tahunInput?.addEventListener('input', onPeriodChange);
 
     updateEmployeeInfo();
+    syncCopyPreviousForm();
 
     if (preserveForm) {
         setEditMode(
@@ -278,6 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         syncBulananOverrideFlags();
         calculate();
+        if (!employeeSelect?.value && bulanSelect?.value && tahunInput?.value) {
+            Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]);
+        }
     } else {
         const initialFormRaw = root?.dataset.initialForm;
         if (initialFormRaw) {
@@ -433,6 +500,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     bindTunjanganOverrideListeners();
+
+    copyPreviousForm?.addEventListener('submit', async event => {
+        const { bulan, tahun } = getSelectedPeriod();
+        const previous = getPreviousPeriod(bulan, tahun);
+
+        if (!bulan || !tahun || !previous) {
+            event.preventDefault();
+            return;
+        }
+
+        event.preventDefault();
+
+        const confirmed = await window.appDialogs?.confirm({
+            title: 'Salin Slip Bulan Sebelumnya?',
+            text: `Semua slip dari ${formatPeriodLabel(previous.bulan, previous.tahun)} akan disalin ke ${formatPeriodLabel(bulan, tahun)}. Slip yang sudah ada pada periode tujuan akan diperbarui.`,
+            confirmText: 'Ya, salin sekarang',
+            cancelText: 'Batal',
+        });
+
+        if (!confirmed) {
+            return;
+        }
+
+        if (copyPreviousButton) {
+            copyPreviousButton.disabled = true;
+            copyPreviousButton.textContent = 'Memproses Copy...';
+        }
+
+        copyPreviousForm.submit();
+    });
 
     document.querySelectorAll('.calc-trigger').forEach(el => {
         el.addEventListener('input', calculate);

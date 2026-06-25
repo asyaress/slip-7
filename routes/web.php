@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\DebugController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ReviewSlipController;
 use App\Http\Controllers\SlipGajiController;
@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/slip-gaji/lembur-weeks', [SlipGajiController::class, 'lemburWeeks'])->name('slip.lembur-weeks');
     Route::get('/slip-gaji/monthly-tunjangan', [SlipGajiController::class, 'monthlyTunjangan'])->name('slip.monthly-tunjangan');
     Route::get('/slip-gaji/{slip}/edit', [SlipGajiController::class, 'edit'])->name('slip.edit');
+    Route::post('/slip-gaji/copy-previous', [SlipGajiController::class, 'copyPreviousMonth'])->name('slip.copy-previous');
     Route::post('/slip-gaji/preview', [SlipGajiController::class, 'preview'])->name('slip.preview');
     Route::post('/slip-gaji', [SlipGajiController::class, 'store'])->name('slip.store');
 

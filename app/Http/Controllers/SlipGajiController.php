@@ -8,6 +8,7 @@ use App\Services\LemburWeekService;
 use App\Services\MonthlyTunjanganService;
 use App\Services\SlipGajiBuilder;
 use App\Services\SlipGajiCalculator;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -120,6 +121,65 @@ class SlipGajiController extends Controller
         return redirect()->route('review.show', $saved)->with('success', $message);
     }
 
+    public function copyPreviousMonth(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'bulan' => 'required|integer|min:1|max:12',
+            'tahun' => 'required|integer|min:2020|max:2100',
+            'redirect_to' => 'nullable|in:slip,review',
+        ]);
+
+        $targetPeriod = Carbon::create((int) $validated['tahun'], (int) $validated['bulan'], 1);
+        $sourcePeriod = $targetPeriod->copy()->subMonthNoOverflow();
+        $sourceSlips = SalarySlip::with('employee')
+            ->where('bulan', $sourcePeriod->month)
+            ->where('tahun', $sourcePeriod->year)
+            ->orderBy('employee_id')
+            ->get();
+
+        $redirect = $this->copyPreviousMonthRedirect(
+            $validated['redirect_to'] ?? 'slip',
+            $targetPeriod->month,
+            $targetPeriod->year
+        );
+
+        if ($sourceSlips->isEmpty()) {
+            return $redirect->with(
+                'warning',
+                'Tidak ada slip '.$sourcePeriod->locale('id')->translatedFormat('F Y').' yang bisa disalin.'
+            );
+        }
+
+        $created = 0;
+        $updated = 0;
+
+        foreach ($sourceSlips as $sourceSlip) {
+            if (! $sourceSlip->employee) {
+                continue;
+            }
+
+            $saved = SlipGajiBuilder::copySlipToPeriod(
+                $sourceSlip,
+                $targetPeriod->month,
+                $targetPeriod->year
+            );
+
+            if ($saved->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
+        }
+
+        $targetLabel = $targetPeriod->locale('id')->translatedFormat('F Y');
+        $sourceLabel = $sourcePeriod->locale('id')->translatedFormat('F Y');
+
+        return $redirect->with(
+            'success',
+            "Copy slip dari {$sourceLabel} ke {$targetLabel} selesai. {$created} slip dibuat, {$updated} slip diperbarui."
+        );
+    }
+
     public function preview(Request $request): View
     {
         $validated = $this->validateSlip($request);
@@ -198,8 +258,8 @@ class SlipGajiController extends Controller
 
     private function resolveLemburWeeks(?SalarySlip $editingSlip = null): array
     {
-        $bulan = (int) old('bulan', $editingSlip?->bulan ?? now()->month);
-        $tahun = (int) old('tahun', $editingSlip?->tahun ?? now()->year);
+        $bulan = (int) old('bulan', $editingSlip?->bulan ?? request()->integer('bulan', now()->month));
+        $tahun = (int) old('tahun', $editingSlip?->tahun ?? request()->integer('tahun', now()->year));
 
         return LemburWeekService::weeksForForm($bulan, $tahun, $editingSlip?->lembur);
     }
@@ -251,5 +311,17 @@ class SlipGajiController extends Controller
         }
 
         $request->merge($normalized);
+    }
+
+    private function copyPreviousMonthRedirect(string $target, int $bulan, int $tahun): RedirectResponse
+    {
+        $params = [
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+        ];
+
+        return $target === 'review'
+            ? redirect()->route('review.index', $params)
+            : redirect()->route('slip.create', $params);
     }
 }
