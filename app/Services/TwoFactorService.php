@@ -127,6 +127,18 @@ class TwoFactorService
         return json_decode(Crypt::decryptString($user->two_factor_recovery_codes), true) ?? [];
     }
 
+    public function resetForUser(User $user): int
+    {
+        $deletedDevices = $user->twoFactorDevices()->delete();
+
+        $user->forceFill([
+            'two_factor_enabled_at' => null,
+            'two_factor_recovery_codes' => null,
+        ])->save();
+
+        return $deletedDevices;
+    }
+
     private function decryptSecret(TwoFactorDevice $device): string
     {
         return Crypt::decryptString($device->secret);

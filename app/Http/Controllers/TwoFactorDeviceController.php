@@ -40,7 +40,7 @@ class TwoFactorDeviceController extends Controller
             ->with('success', 'Scan barcode di Google Authenticator, lalu masukkan kode 6 digit.');
     }
 
-    public function destroy(TwoFactorDevice $device): RedirectResponse
+    public function destroy(TwoFactorDevice $device, TwoFactorService $twoFactor): RedirectResponse
     {
         abort_unless($device->user_id === auth()->id(), 403);
 
@@ -52,10 +52,7 @@ class TwoFactorDeviceController extends Controller
         $device->delete();
 
         if (! auth()->user()->hasConfirmedTwoFactor()) {
-            auth()->user()->update([
-                'two_factor_enabled_at' => null,
-                'two_factor_recovery_codes' => null,
-            ]);
+            $twoFactor->resetForUser(auth()->user());
         }
 
         return back()->with('success', "Perangkat \"{$label}\" dihapus.");

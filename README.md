@@ -38,6 +38,18 @@ php artisan route:cache
 php artisan view:cache
 ```
 
+### Reset 2FA semua akun
+
+```bash
+php artisan security:reset-two-factor --force
+```
+
+Atau gunakan wrapper script:
+
+```bash
+bash scripts/reset-all-2fa.sh
+```
+
 ## Database
 
 Migration utama:
