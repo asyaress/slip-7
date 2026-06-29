@@ -501,6 +501,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindTunjanganOverrideListeners();
 
+    document.getElementById('slip-form')?.addEventListener('submit', event => {
+        const submitter = event.submitter;
+
+        if (!(submitter instanceof HTMLButtonElement) || submitter.id !== 'btn-save-slip') {
+            return;
+        }
+
+        const isUpdating = submitter.textContent.includes('Perbarui');
+        submitter.disabled = true;
+        submitter.setAttribute('aria-busy', 'true');
+        submitter.textContent = isUpdating ? 'Menyimpan Perubahan...' : 'Menyimpan Slip...';
+    });
+
     copyPreviousForm?.addEventListener('submit', async event => {
         const { bulan, tahun } = getSelectedPeriod();
         const previous = getPreviousPeriod(bulan, tahun);
