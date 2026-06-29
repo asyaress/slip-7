@@ -28,7 +28,7 @@ class SlipGajiCalculator
 
     public static function parseRupiah(mixed $value): float
     {
-        if (is_numeric($value)) {
+        if (is_int($value) || is_float($value)) {
             return (float) $value;
         }
 

@@ -107,6 +107,49 @@ class CopyPreviousSalarySlipTest extends TestCase
         $this->assertSame($sourceSlipB->fasilitas, $existingTarget->fasilitas);
     }
 
+    public function test_copied_slip_overtime_can_be_updated_from_the_salary_slip_form(): void
+    {
+        $user = User::factory()->create();
+        $employee = $this->createEmployee(1, 'Ayu');
+
+        $this->createSlip($employee, 5, 2026, [
+            'gaji_pokok' => 5100000,
+            'lembur_nominals' => [0, 0, 0, 0],
+        ]);
+
+        $this->actingAs($user)->post(route('slip.copy-previous'), [
+            'bulan' => 6,
+            'tahun' => 2026,
+        ])->assertRedirect();
+
+        $copiedSlip = SalarySlip::where('employee_id', $employee->id)
+            ->where('bulan', 6)
+            ->where('tahun', 2026)
+            ->firstOrFail();
+
+        $formData = $copiedSlip->toFormInputs();
+        $formData['lembur'] = $copiedSlip->lembur['weeks'];
+        $formData['lembur'][0]['nominal'] = '175.000';
+        $formData['lembur'][0]['status'] = LemburWeekService::STATUS_SUDAH_DIBAYAR;
+
+        $this->actingAs($user)
+            ->post(route('slip.store'), $formData)
+            ->assertRedirect(route('review.show', $copiedSlip));
+
+        $copiedSlip->refresh();
+
+        $this->assertEquals(175000.0, (float) $copiedSlip->lembur['weeks'][0]['nominal']);
+        $this->assertSame(
+            LemburWeekService::STATUS_SUDAH_DIBAYAR,
+            $copiedSlip->lembur['weeks'][0]['status']
+        );
+        $this->assertEquals(175000.0, (float) $copiedSlip->total_lembur);
+        $this->assertEquals(
+            (float) $copiedSlip->take_home_pay + 175000.0,
+            (float) $copiedSlip->total_pendapatan
+        );
+    }
+
     public function test_it_warns_when_previous_period_has_no_slips_to_copy(): void
     {
         $user = User::factory()->create();
