@@ -112,14 +112,9 @@
                         <p class="text-sm font-medium text-slate-700">Copy data slip bulan sebelumnya</p>
                         <p id="copy-previous-help" class="text-xs text-slate-500">Salin semua slip dari periode sebelumnya ke bulan yang dipilih.</p>
                     </div>
-                    <form id="copy-previous-form" action="{{ route('slip.copy-previous') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="bulan" id="copy_previous_bulan" value="{{ $formValue('bulan', request('bulan', now()->month)) }}">
-                        <input type="hidden" name="tahun" id="copy_previous_tahun" value="{{ $formValue('tahun', request('tahun', now()->year)) }}">
-                        <button type="submit" id="btn-copy-previous" class="btn-secondary w-full sm:w-auto">
-                            Copy Slip Bulan Sebelumnya
-                        </button>
-                    </form>
+                    <button type="submit" form="copy-previous-form" id="btn-copy-previous" class="btn-secondary w-full sm:w-auto">
+                        Copy Slip Bulan Sebelumnya
+                    </button>
                 </div>
             </section>
 
@@ -272,6 +267,12 @@
                     Preview Dulu
                 </button>
             </div>
+        </form>
+
+        <form id="copy-previous-form" action="{{ route('slip.copy-previous') }}" method="POST" class="hidden">
+            @csrf
+            <input type="hidden" name="bulan" id="copy_previous_bulan" value="{{ $formValue('bulan', request('bulan', now()->month)) }}">
+            <input type="hidden" name="tahun" id="copy_previous_tahun" value="{{ $formValue('tahun', request('tahun', now()->year)) }}">
         </form>
     </div>
 

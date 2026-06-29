@@ -14,6 +14,27 @@ class CopyPreviousSalarySlipTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_salary_slip_and_copy_previous_forms_are_not_nested(): void
+    {
+        $user = User::factory()->create();
+
+        $content = $this->actingAs($user)
+            ->get(route('slip.create'))
+            ->assertOk()
+            ->getContent();
+
+        $slipFormStart = strpos($content, '<form id="slip-form"');
+        $slipFormEnd = strpos($content, '</form>', $slipFormStart);
+        $copyFormStart = strpos($content, '<form id="copy-previous-form"');
+
+        $this->assertNotFalse($slipFormStart);
+        $this->assertNotFalse($slipFormEnd);
+        $this->assertNotFalse($copyFormStart);
+        $this->assertLessThan($slipFormEnd, $slipFormStart);
+        $this->assertLessThan($copyFormStart, $slipFormEnd);
+        $this->assertStringContainsString('form="copy-previous-form"', $content);
+    }
+
     public function test_it_copies_previous_month_slips_and_updates_existing_targets(): void
     {
         $user = User::factory()->create();
