@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/slip-gaji/monthly-tunjangan', [SlipGajiController::class, 'monthlyTunjangan'])->name('slip.monthly-tunjangan');
     Route::get('/slip-gaji/{slip}/edit', [SlipGajiController::class, 'edit'])->name('slip.edit');
     Route::post('/slip-gaji/copy-previous', [SlipGajiController::class, 'copyPreviousMonth'])->name('slip.copy-previous');
+    Route::post('/slip-gaji/autosave', [SlipGajiController::class, 'autoSave'])->name('slip.autosave');
     Route::post('/slip-gaji/preview', [SlipGajiController::class, 'preview'])->name('slip.preview');
     Route::post('/slip-gaji', [SlipGajiController::class, 'store'])->name('slip.store');
 

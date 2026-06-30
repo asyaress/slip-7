@@ -121,6 +121,27 @@ class SlipGajiController extends Controller
         return redirect()->route('review.show', $saved)->with('success', $message);
     }
 
+    public function autoSave(Request $request): JsonResponse
+    {
+        $validated = $this->validateSlip($request);
+        $employee = Employee::findOrFail($validated['employee_id']);
+
+        $slip = SlipGajiBuilder::buildFromValidated($validated, $employee);
+        $saved = SlipGajiBuilder::saveSlip($slip, $employee);
+
+        return response()->json([
+            'saved' => true,
+            'slip_id' => $saved->id,
+            'was_created' => $saved->wasRecentlyCreated,
+            'message' => $saved->wasRecentlyCreated
+                ? "Slip gaji {$employee->name} tersimpan otomatis."
+                : "Perubahan slip {$employee->name} tersimpan otomatis.",
+            'review_url' => route('review.show', $saved),
+            'edit_url' => route('slip.edit', $saved),
+            'updated_at' => optional($saved->updated_at)->format('H:i:s'),
+        ]);
+    }
+
     public function copyPreviousMonth(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -207,10 +228,11 @@ class SlipGajiController extends Controller
         $this->normalizeRupiahFields($request);
         $this->normalizeLemburFields($request);
 
-        $tunRules = [];
+        $tunjRules = [];
         foreach (MonthlyTunjanganService::keys() as $key) {
             $tunjRules["tunj_harian_{$key}"] = 'nullable|numeric|min:0';
             $tunjRules["tunj_bulanan_{$key}"] = 'nullable|numeric|min:0';
+            $tunjRules["tunj_mode_{$key}"] = 'nullable|in:harian,bulanan';
         }
 
         $validated = $request->validate(array_merge([
@@ -241,6 +263,9 @@ class SlipGajiController extends Controller
             $validated["tunj_bulanan_{$key}"] = SlipGajiCalculator::parseRupiah(
                 $validated["tunj_bulanan_{$key}"] ?? 0
             );
+            $validated["tunj_mode_{$key}"] = SlipGajiCalculator::isTunjanganBulananOnly($key)
+                ? 'bulanan'
+                : ($validated["tunj_mode_{$key}"] ?? null);
         }
 
         $validated['fasilitas'] = SlipGajiCalculator::normalizeFasilitas(

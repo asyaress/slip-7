@@ -20,13 +20,6 @@ class SlipGajiBuilder
 
         $calculation = SlipGajiCalculator::calculate($validated);
 
-        if (array_sum($calculation['tunjangan_bulanan']) > 0) {
-            MonthlyTunjanganService::saveForPeriod(
-                $bulan,
-                $tahun,
-                $calculation['tunjangan_bulanan']
-            );
-        }
         $namaBulan = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
 
         return [

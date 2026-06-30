@@ -174,6 +174,25 @@ class SalarySlip extends Model
             $inputs["tunj_harian_{$key}"] = $value;
         }
 
+        $days = max(1, (int) $this->jumlah_kehadiran);
+
+        foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
+            if (\App\Services\SlipGajiCalculator::isTunjanganBulananOnly($key)) {
+                $inputs["tunj_mode_{$key}"] = 'bulanan';
+
+                continue;
+            }
+
+            $harian = (float) ($tunjanganHarian[$key] ?? 0);
+            $bulanan = (float) ($tunjanganBulanan[$key] ?? 0);
+            $hasFractionalDailyRate = abs($harian - round($harian)) > 0.0001;
+            $hasManualMonthlyTotal = $bulanan > 0 && abs($bulanan - ($harian * $days)) > 1;
+
+            $inputs["tunj_mode_{$key}"] = $hasFractionalDailyRate || $hasManualMonthlyTotal
+                ? 'bulanan'
+                : 'harian';
+        }
+
         return $inputs;
     }
 

@@ -62,7 +62,8 @@ export function initRupiahInputs(root = document) {
     });
 
     const form = document.getElementById('slip-form');
-    if (form) {
+    if (form && form.dataset.rupiahSubmitBound !== '1') {
+        form.dataset.rupiahSubmitBound = '1';
         form.addEventListener('submit', () => {
             document.querySelectorAll('.rupiah-input').forEach(input => {
                 input.value = parseRupiah(input.value);

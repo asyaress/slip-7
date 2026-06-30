@@ -37,6 +37,7 @@
      data-existing-url="{{ route('slip.existing') }}"
      data-lembur-weeks-url="{{ route('slip.lembur-weeks') }}"
      data-monthly-tunjangan-url="{{ route('slip.monthly-tunjangan') }}"
+     data-autosave-url="{{ route('slip.autosave') }}"
      @if($preserveForm) data-preserve-form="1" @elseif(!empty($formData)) data-initial-form='@json($formData)' @endif
      class="grid lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2">
@@ -182,10 +183,12 @@
                                 value="{{ $formatFormRupiah('tunj_bulanan_'.$key, 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger tunj-bulanan-input tunj-monthly-only-input">
                             <input type="hidden" name="tunj_harian_{{ $key }}" id="tunj_harian_{{ $key }}" value="0">
+                            <input type="hidden" name="tunj_mode_{{ $key }}" id="tunj_mode_{{ $key }}" value="bulanan">
                         </div>
                     </div>
                     @else
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row" data-tunj-key="{{ $key }}" data-bulanan-overridden="0">
+                    @php $tunjMode = $formValue('tunj_mode_'.$key, 'harian') === 'bulanan' ? 'bulanan' : 'harian'; @endphp
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center tunj-row" data-tunj-key="{{ $key }}" data-bulanan-overridden="{{ $tunjMode === 'bulanan' ? '1' : '0' }}">
                         <div class="sm:col-span-5 text-sm text-slate-700">{{ $label }}</div>
                         <div class="sm:col-span-3 rupiah-field">
                             <span class="rupiah-prefix">Rp</span>
@@ -199,6 +202,7 @@
                                 value="{{ $formatFormRupiah('tunj_bulanan_'.$key, 0) }}" placeholder="0"
                                 class="rupiah-input calc-trigger tunj-bulanan-input">
                         </div>
+                        <input type="hidden" name="tunj_mode_{{ $key }}" id="tunj_mode_{{ $key }}" value="{{ $tunjMode }}">
                     </div>
                     @endif
                     @endforeach
@@ -259,11 +263,12 @@
 
             @include('slip.partials.lembur-form', ['lemburWeeks' => $lemburWeeks ?? []])
 
-            <div class="flex flex-wrap gap-3">
-                <button type="submit" formaction="{{ route('slip.store') }}" id="btn-save-slip" class="btn-primary">
-                    {{ isset($editingSlip) ? 'Perbarui Slip Gaji' : 'Simpan & Generate Slip' }}
-                </button>
-                <button type="submit" formaction="{{ route('slip.preview') }}" class="btn-secondary">
+            <div class="flex flex-wrap gap-3 items-center justify-between">
+                <div id="autosave-status" class="inline-flex items-center gap-2 text-sm text-slate-500" aria-live="polite">
+                    <span id="autosave-status-dot" class="h-2 w-2 rounded-full bg-slate-300"></span>
+                    <span id="autosave-status-text">Auto-save aktif</span>
+                </div>
+                <button type="submit" formaction="{{ route('slip.preview') }}" id="btn-preview-slip" class="btn-secondary">
                     Preview Dulu
                 </button>
             </div>

@@ -8,7 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const bulanSelect = document.getElementById('bulan');
     const tahunInput = document.getElementById('tahun');
     const existingNotice = document.getElementById('existing-slip-notice');
-    const saveButton = document.getElementById('btn-save-slip');
+    const slipForm = document.getElementById('slip-form');
+    const autoSaveStatus = document.getElementById('autosave-status');
+    const autoSaveStatusDot = document.getElementById('autosave-status-dot');
+    const autoSaveStatusText = document.getElementById('autosave-status-text');
     const copyPreviousForm = document.getElementById('copy-previous-form');
     const copyPreviousButton = document.getElementById('btn-copy-previous');
     const copyPreviousBulan = document.getElementById('copy_previous_bulan');
@@ -17,7 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const existingUrl = root?.dataset.existingUrl;
     const lemburWeeksUrl = root?.dataset.lemburWeeksUrl;
     const monthlyTunjanganUrl = root?.dataset.monthlyTunjanganUrl;
+    const autoSaveUrl = root?.dataset.autosaveUrl;
     const preserveForm = root?.dataset.preserveForm === '1';
+    const autoSaveDelay = 1000;
+    let autoSaveTimer = null;
+    let autoSaveController = null;
+    let autoSaveSequence = 0;
 
     const rupiahFields = [
         'gaji_pokok',
@@ -31,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(el => el.id);
 
     const tunjanganMonthlyOnlyIds = Array.from(document.querySelectorAll('.tunj-monthly-only-input'))
+        .map(el => el.id);
+
+    const tunjanganModeIds = Array.from(document.querySelectorAll('input[id^="tunj_mode_"]'))
         .map(el => el.id);
 
     const numberFields = [
@@ -109,27 +120,172 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function setAutoSaveStatus(state, message) {
+        if (!autoSaveStatus || !autoSaveStatusText || !autoSaveStatusDot) {
+            return;
+        }
+
+        const dotClasses = {
+            idle: 'h-2 w-2 rounded-full bg-slate-300',
+            pending: 'h-2 w-2 rounded-full bg-amber-400',
+            saving: 'h-2 w-2 rounded-full bg-blue-500 animate-pulse',
+            saved: 'h-2 w-2 rounded-full bg-emerald-500',
+            error: 'h-2 w-2 rounded-full bg-red-500',
+        };
+
+        const textClasses = {
+            idle: 'inline-flex items-center gap-2 text-sm text-slate-500',
+            pending: 'inline-flex items-center gap-2 text-sm text-amber-700',
+            saving: 'inline-flex items-center gap-2 text-sm text-blue-700',
+            saved: 'inline-flex items-center gap-2 text-sm text-emerald-700',
+            error: 'inline-flex items-center gap-2 text-sm text-red-700',
+        };
+
+        autoSaveStatus.className = textClasses[state] ?? textClasses.idle;
+        autoSaveStatusDot.className = dotClasses[state] ?? dotClasses.idle;
+        autoSaveStatusText.textContent = message;
+    }
+
+    function syncEditingSlipId(slipId) {
+        if (!slipForm || !slipId) {
+            return;
+        }
+
+        let input = slipForm.querySelector('input[name="_editing_slip_id"]');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_editing_slip_id';
+            slipForm.appendChild(input);
+        }
+
+        input.value = slipId;
+    }
+
+    function clearEditingSlipId() {
+        slipForm?.querySelector('input[name="_editing_slip_id"]')?.remove();
+    }
+
+    function hasAutoSaveMinimumData() {
+        return !!(
+            employeeSelect?.value
+            && bulanSelect?.value
+            && tahunInput?.value
+            && parseRupiah(document.getElementById('gaji_pokok')?.value) > 0
+        );
+    }
+
+    function queueAutoSave(delay = autoSaveDelay) {
+        if (!autoSaveUrl || !slipForm) {
+            return;
+        }
+
+        window.clearTimeout(autoSaveTimer);
+
+        if (!hasAutoSaveMinimumData()) {
+            setAutoSaveStatus('idle', 'Auto-save aktif setelah karyawan dan gaji pokok diisi');
+            return;
+        }
+
+        setAutoSaveStatus('pending', 'Perubahan belum tersimpan');
+        autoSaveTimer = window.setTimeout(saveNow, delay);
+    }
+
+    async function saveNow() {
+        if (!autoSaveUrl || !slipForm || !hasAutoSaveMinimumData()) {
+            return;
+        }
+
+        const sequence = ++autoSaveSequence;
+
+        if (autoSaveController) {
+            autoSaveController.abort();
+        }
+
+        autoSaveController = new AbortController();
+        calculate();
+        setAutoSaveStatus('saving', 'Menyimpan otomatis...');
+
+        try {
+            const response = await fetch(autoSaveUrl, {
+                method: 'POST',
+                body: new FormData(slipForm),
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                signal: autoSaveController.signal,
+            });
+
+            if (sequence !== autoSaveSequence) {
+                return;
+            }
+
+            if (response.status === 422) {
+                setAutoSaveStatus('error', 'Lengkapi data wajib agar bisa tersimpan');
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Auto-save failed with status ${response.status}`);
+            }
+
+            const result = await response.json();
+            syncEditingSlipId(result.slip_id);
+            setEditMode(true);
+            setAutoSaveStatus('saved', `${result.message ?? 'Tersimpan otomatis.'} ${result.updated_at ?? ''}`.trim());
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                return;
+            }
+
+            setAutoSaveStatus('error', 'Auto-save gagal, cek koneksi lalu ubah lagi');
+        }
+    }
+
     function getJumlahKehadiran() {
         return Math.max(1, parseInt(document.getElementById('jumlah_kehadiran')?.value, 10) || 26);
     }
 
-    function syncBulananOverrideFlags() {
-        const jumlahKehadiran = getJumlahKehadiran();
+    function setTunjanganMode(row, mode) {
+        if (!row) {
+            return;
+        }
 
+        const normalized = mode === 'bulanan' ? 'bulanan' : 'harian';
+        const key = row.dataset.tunjKey;
+        const modeInput = document.getElementById(`tunj_mode_${key}`);
+
+        row.dataset.bulananOverridden = normalized === 'bulanan' ? '1' : '0';
+
+        if (modeInput) {
+            modeInput.value = normalized;
+        }
+    }
+
+    function inferTunjanganMode(row) {
+        const jumlahKehadiran = getJumlahKehadiran();
+        const key = row.dataset.tunjKey;
+        const harian = parseRupiah(document.getElementById(`tunj_harian_${key}`)?.value);
+        const bulanan = parseRupiah(document.getElementById(`tunj_bulanan_${key}`)?.value);
+        const autoBulanan = harian * jumlahKehadiran;
+
+        return (
+            (bulanan > 0 && Math.abs(bulanan - autoBulanan) > 1)
+            || (bulanan === 0 && harian > 0 && autoBulanan > 0)
+        ) ? 'bulanan' : 'harian';
+    }
+
+    function syncBulananOverrideFlags() {
         document.querySelectorAll('.tunj-row').forEach(row => {
             const key = row.dataset.tunjKey;
             if (row.dataset.tunjMonthlyOnly === '1') {
+                setTunjanganMode(row, 'bulanan');
                 return;
             }
 
-            const harian = parseRupiah(document.getElementById(`tunj_harian_${key}`)?.value);
-            const bulanan = parseRupiah(document.getElementById(`tunj_bulanan_${key}`)?.value);
-            const autoBulanan = harian * jumlahKehadiran;
-
-            row.dataset.bulananOverridden = (
-                (bulanan > 0 && Math.abs(bulanan - autoBulanan) > 1)
-                || (bulanan === 0 && harian > 0 && autoBulanan > 0)
-            ) ? '1' : '0';
+            const modeInput = document.getElementById(`tunj_mode_${key}`);
+            setTunjanganMode(row, modeInput?.value || inferTunjanganMode(row));
         });
     }
 
@@ -138,6 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tunjanganHarianIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         tunjanganBulananIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         numberFields.forEach(field => setFieldValue(field, data[field] ?? 0));
+        tunjanganModeIds.forEach(field => setFieldValue(field, data[field] ?? 'harian'));
         setFasilitasCheckboxes(data.fasilitas ?? []);
         syncBulananOverrideFlags();
         calculate();
@@ -210,7 +367,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             document.querySelectorAll('.tunj-row').forEach(row => {
-                row.dataset.bulananOverridden = '0';
+                if (row.dataset.tunjMonthlyOnly === '1') {
+                    setTunjanganMode(row, 'bulanan');
+                    return;
+                }
+
+                const key = row.dataset.tunjKey;
+                const hasMonthlyRate = parseRupiah(document.getElementById(`tunj_bulanan_${key}`)?.value) > 0;
+                setTunjanganMode(row, hasMonthlyRate ? 'bulanan' : 'harian');
             });
 
             calculate();
@@ -248,9 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existingNotice) {
             existingNotice.classList.toggle('hidden', !isEdit);
         }
-        if (saveButton) {
-            saveButton.textContent = isEdit ? 'Perbarui Slip Gaji' : 'Simpan & Generate Slip';
-        }
     }
 
     async function checkExistingSlip() {
@@ -277,13 +438,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.exists && result.data) {
                 fillForm(result.data);
+                syncEditingSlipId(result.slip_id);
                 if (result.lembur_weeks) {
                     renderLemburRows(result.lembur_weeks);
                 }
                 setEditMode(true);
+                setAutoSaveStatus('saved', 'Slip periode ini sudah tersimpan');
                 return true;
             }
 
+            clearEditingSlipId();
             setEditMode(false);
             return false;
         } catch {
@@ -338,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (preserveForm) {
         setEditMode(
             !!document.querySelector('[name="_editing_slip_id"]')
-            || saveButton?.textContent.includes('Perbarui')
         );
         syncBulananOverrideFlags();
         calculate();
@@ -358,10 +521,15 @@ document.addEventListener('DOMContentLoaded', () => {
             onPeriodChange();
         } else if (bulanSelect?.value && tahunInput?.value) {
             fetchMonthlyTunjangan();
-        } else if (saveButton?.textContent.includes('Perbarui')) {
-            setEditMode(true);
         }
     }
+
+    setAutoSaveStatus(
+        hasAutoSaveMinimumData() ? 'saved' : 'idle',
+        hasAutoSaveMinimumData()
+            ? 'Auto-save aktif'
+            : 'Auto-save aktif setelah karyawan dan gaji pokok diisi'
+    );
 
     initRupiahInputs();
 
@@ -408,12 +576,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.querySelector(`.tunj-row[data-tunj-key="${key}"]`);
             const harianEl = document.getElementById(harianId);
             const bulananEl = document.getElementById(bulananId);
-            const isOverridden = row?.dataset.bulananOverridden === '1';
+            const mode = document.getElementById(`tunj_mode_${key}`)?.value;
+            const isOverridden = mode === 'bulanan' || row?.dataset.bulananOverridden === '1';
 
             if (isOverridden && bulananEl && harianEl) {
                 const bulanan = parseRupiah(bulananEl.value);
-                harianEl.value = formatNominalInput(bulanan / jumlahKehadiran);
-                totalTunjHarian += parseRupiah(harianEl.value);
+                const harian = bulanan / jumlahKehadiran;
+                harianEl.value = formatNominalInput(harian);
+                totalTunjHarian += harian;
                 totalTunjBulanan += bulanan;
             } else {
                 const harian = parseRupiah(harianEl?.value);
@@ -463,9 +633,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function bindLemburInputs() {
-        document.querySelectorAll('.lembur-input').forEach(el => {
+        document.querySelectorAll('.lembur-input, .lembur-status').forEach(el => {
+            if (el.dataset.slipFormBound === '1') {
+                return;
+            }
+
+            el.dataset.slipFormBound = '1';
             el.addEventListener('input', calculate);
             el.addEventListener('rupiah-change', calculate);
+            el.addEventListener('change', calculate);
+            el.addEventListener('input', () => queueAutoSave());
+            el.addEventListener('rupiah-change', () => queueAutoSave());
+            el.addEventListener('change', () => queueAutoSave());
         });
     }
 
@@ -475,12 +654,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.tunj-bulanan-input').forEach(el => {
             const markOverridden = () => {
                 const row = el.closest('.tunj-row');
-                if (row) {
-                    row.dataset.bulananOverridden = '1';
-                }
+                setTunjanganMode(row, 'bulanan');
             };
 
-            ['beforeinput', 'keydown', 'input', 'paste'].forEach(eventName => {
+            ['beforeinput', 'input', 'paste'].forEach(eventName => {
                 el.addEventListener(eventName, markOverridden, true);
             });
         });
@@ -488,12 +665,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.tunj-harian-input').forEach(el => {
             const markAuto = () => {
                 const row = el.closest('.tunj-row');
-                if (row) {
-                    row.dataset.bulananOverridden = '0';
-                }
+                setTunjanganMode(row, 'harian');
             };
 
-            ['beforeinput', 'keydown', 'input', 'paste'].forEach(eventName => {
+            ['beforeinput', 'input', 'paste'].forEach(eventName => {
                 el.addEventListener(eventName, markAuto, true);
             });
         });
@@ -501,17 +676,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindTunjanganOverrideListeners();
 
-    document.getElementById('slip-form')?.addEventListener('submit', event => {
+    slipForm?.addEventListener('submit', event => {
         const submitter = event.submitter;
 
-        if (!(submitter instanceof HTMLButtonElement) || submitter.id !== 'btn-save-slip') {
+        if (submitter instanceof HTMLButtonElement && submitter.id === 'btn-preview-slip') {
             return;
         }
 
-        const isUpdating = submitter.textContent.includes('Perbarui');
-        submitter.disabled = true;
-        submitter.setAttribute('aria-busy', 'true');
-        submitter.textContent = isUpdating ? 'Menyimpan Perubahan...' : 'Menyimpan Slip...';
+        event.preventDefault();
+        saveNow();
     });
 
     copyPreviousForm?.addEventListener('submit', async event => {
@@ -548,6 +721,21 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('input', calculate);
         el.addEventListener('change', calculate);
         el.addEventListener('rupiah-change', calculate);
+        el.addEventListener('input', () => queueAutoSave());
+        el.addEventListener('change', () => queueAutoSave());
+        el.addEventListener('rupiah-change', () => queueAutoSave());
+    });
+
+    numberFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) {
+            return;
+        }
+
+        el.addEventListener('input', calculate);
+        el.addEventListener('change', calculate);
+        el.addEventListener('input', () => queueAutoSave());
+        el.addEventListener('change', () => queueAutoSave());
     });
 
     bindLemburInputs();
