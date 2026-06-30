@@ -9,7 +9,7 @@ class SalarySlip extends Model
 {
     protected $fillable = [
         'employee_id', 'bulan', 'tahun', 'nomor_surat',
-        'gaji_pokok', 'tunjangan', 'tunjangan_bulanan', 'potongan',
+        'gaji_pokok', 'tunjangan', 'tunjangan_bulanan', 'tunjangan_modes', 'potongan',
         'bpjs_kesehatan', 'makan_siang_malam', 'pensiun', 'fasilitas',
         'lembur', 'total_lembur',
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
@@ -23,6 +23,7 @@ class SalarySlip extends Model
         return [
             'tunjangan' => 'array',
             'tunjangan_bulanan' => 'array',
+            'tunjangan_modes' => 'array',
             'potongan' => 'array',
             'fasilitas' => 'array',
             'gaji_pokok' => 'float',
@@ -149,6 +150,7 @@ class SalarySlip extends Model
         $potongan = $this->potongan ?? [];
         $tunjanganBulanan = $this->resolvedTunjanganBulanan();
         $tunjanganHarian = $this->resolvedTunjanganHarian();
+        $storedModes = $this->tunjangan_modes ?? [];
 
         $inputs = [
             'employee_id' => $this->employee_id,
@@ -183,6 +185,12 @@ class SalarySlip extends Model
                 continue;
             }
 
+            if (in_array($storedModes[$key] ?? null, ['harian', 'bulanan'], true)) {
+                $inputs["tunj_mode_{$key}"] = $storedModes[$key];
+
+                continue;
+            }
+
             $harian = (float) ($tunjanganHarian[$key] ?? 0);
             $bulanan = (float) ($tunjanganBulanan[$key] ?? 0);
             $hasFractionalDailyRate = abs($harian - round($harian)) > 0.0001;
@@ -202,11 +210,14 @@ class SalarySlip extends Model
         $jumlahKehadiran = max(1, (int) $this->jumlah_kehadiran);
         $tunjanganBulanan = $this->resolvedTunjanganBulanan();
         $tunjanganHarian = $this->resolvedTunjanganHarian();
+        $tunjanganModes = $this->tunjangan_modes ?? [];
         $totalTunjanganHarian = 0;
         $tunjanganFlatBulanan = 0;
 
         foreach (\App\Services\SlipGajiCalculator::tunjanganKeys() as $key) {
-            if (\App\Services\SlipGajiCalculator::isTunjanganBulananOnly($key)) {
+            $mode = $tunjanganModes[$key] ?? null;
+
+            if (\App\Services\SlipGajiCalculator::isTunjanganBulananOnly($key) || $mode === 'bulanan') {
                 $tunjanganFlatBulanan += (float) ($tunjanganBulanan[$key] ?? 0);
             } else {
                 $totalTunjanganHarian += (float) ($tunjanganHarian[$key] ?? 0);
@@ -244,6 +255,7 @@ class SalarySlip extends Model
             'gaji_pokok' => $this->gaji_pokok,
             'tunjangan' => $tunjanganHarian,
             'tunjangan_bulanan' => $tunjanganBulanan,
+            'tunjangan_modes' => $tunjanganModes,
             'tunjangan_earned' => $tunjanganEarned,
             'potongan' => $this->potongan,
             'jumlah_kehadiran' => $this->jumlah_kehadiran,

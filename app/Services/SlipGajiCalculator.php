@@ -69,19 +69,21 @@ class SlipGajiCalculator
     }
 
     /**
-     * @return array{harian: array<string, float>, bulanan: array<string, float>}
+     * @return array{harian: array<string, float>, bulanan: array<string, float>, modes: array<string, string>}
      */
     public static function resolveTunjanganFromRequest(array $data, int $jumlahKehadiran): array
     {
         $days = max(1, $jumlahKehadiran);
         $harian = [];
         $bulanan = [];
+        $modes = [];
 
         foreach (self::tunjanganKeys() as $key) {
             if (self::isTunjanganBulananOnly($key)) {
                 $b = self::parseRupiah($data["tunj_bulanan_{$key}"] ?? null);
                 $bulanan[$key] = $b;
                 $harian[$key] = 0;
+                $modes[$key] = 'bulanan';
 
                 continue;
             }
@@ -96,25 +98,31 @@ class SlipGajiCalculator
             if ($mode === 'bulanan') {
                 $bulanan[$key] = $b;
                 $harian[$key] = $b / $days;
+                $modes[$key] = 'bulanan';
             } elseif ($mode === 'harian') {
                 $harian[$key] = $h;
                 $bulanan[$key] = $autoBulanan;
+                $modes[$key] = 'harian';
             } elseif ($hasBulanan && $hasHarian && $b > 0 && abs($b - $autoBulanan) > 1) {
                 $bulanan[$key] = $b;
                 $harian[$key] = $b / $days;
+                $modes[$key] = 'bulanan';
             } elseif ($hasHarian) {
                 $harian[$key] = $h;
                 $bulanan[$key] = $hasBulanan ? $b : $autoBulanan;
+                $modes[$key] = 'harian';
             } elseif ($hasBulanan && $b > 0) {
                 $bulanan[$key] = $b;
                 $harian[$key] = $b / $days;
+                $modes[$key] = 'bulanan';
             } else {
                 $harian[$key] = 0;
                 $bulanan[$key] = 0;
+                $modes[$key] = 'harian';
             }
         }
 
-        return compact('harian', 'bulanan');
+        return compact('harian', 'bulanan', 'modes');
     }
 
     public static function calculate(array $data): array
@@ -127,12 +135,13 @@ class SlipGajiCalculator
         $tunjanganResolved = self::resolveTunjanganFromRequest($data, $jumlahKehadiran);
         $tunjanganHarian = $tunjanganResolved['harian'];
         $tunjanganBulanan = $tunjanganResolved['bulanan'];
+        $tunjanganModes = $tunjanganResolved['modes'];
 
         $totalTunjanganHarian = 0;
         $tunjanganFlatBulanan = 0;
 
         foreach (self::tunjanganKeys() as $key) {
-            if (self::isTunjanganBulananOnly($key)) {
+            if (self::isTunjanganBulananOnly($key) || ($tunjanganModes[$key] ?? null) === 'bulanan') {
                 $tunjanganFlatBulanan += (float) ($tunjanganBulanan[$key] ?? 0);
             } else {
                 $totalTunjanganHarian += (float) ($tunjanganHarian[$key] ?? 0);
@@ -148,7 +157,7 @@ class SlipGajiCalculator
         ];
         $totalPotongan = array_sum($potongan);
 
-        // THP = Gaji Pokok + (Total Tunjangan per hari × Hari Hadir) − Potongan (tanpa lembur)
+        // THP = Gaji Pokok + (Tunjangan harian x Hadir) + Tunjangan bulanan fixed - Potongan.
         $takeHomePay = $gajiPokok + $tunjanganEarned - $totalPotongan;
         $totalPendapatan = $takeHomePay + $totalLembur;
 
@@ -157,6 +166,7 @@ class SlipGajiCalculator
         return [
             'tunjangan' => $tunjanganHarian,
             'tunjangan_bulanan' => $tunjanganBulanan,
+            'tunjangan_modes' => $tunjanganModes,
             'total_tunjangan' => $totalTunjanganHarian,
             'tunjangan_earned' => $tunjanganEarned,
             'potongan' => $potongan,

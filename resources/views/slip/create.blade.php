@@ -295,7 +295,7 @@
                     <dd id="summary-tunj-earned" class="font-medium">Rp 0</dd>
                 </div>
                 <div class="flex justify-between hidden" id="summary-tunj-flat-row">
-                    <dt class="text-slate-500">Tunj. Tempat Tinggal</dt>
+                    <dt class="text-slate-500">Tunjangan Bulanan</dt>
                     <dd id="summary-tunj-flat" class="font-medium">Rp 0</dd>
                 </div>
                 <div class="flex justify-between">

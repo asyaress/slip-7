@@ -64,6 +64,7 @@ class AutoSaveSalarySlipTest extends TestCase
         $this->assertEquals(4500000.0, (float) $slip->gaji_pokok);
         $this->assertEquals(10000.0, (float) $slip->tunjangan['transport']);
         $this->assertEquals(260000.0, (float) $slip->tunjangan_bulanan['transport']);
+        $this->assertSame('harian', $slip->tunjangan_modes['transport']);
         $this->assertEquals(4690000.0, (float) $slip->take_home_pay);
     }
 
@@ -206,7 +207,58 @@ class AutoSaveSalarySlipTest extends TestCase
 
         $this->assertEquals(500000.0, (float) $slip->tunjangan_bulanan['transport']);
         $this->assertEqualsWithDelta(500000 / 26, (float) $slip->tunjangan['transport'], 0.001);
+        $this->assertSame('bulanan', $slip->tunjangan_modes['transport']);
         $this->assertEquals(260000.0, (float) $slip->tunjangan_bulanan['kehadiran']);
         $this->assertEquals(10000.0, (float) $slip->tunjangan['kehadiran']);
+    }
+
+    public function test_monthly_tunjangan_is_fixed_when_attendance_inputs_change(): void
+    {
+        $user = User::factory()->create();
+        $employee = Employee::create([
+            'nomor' => 11,
+            'name' => 'Nina',
+            'email' => 'nina@example.com',
+            'jabatan' => 'Operator',
+            'alamat' => 'Samarinda',
+            'tgl_masuk' => '2024-01-15',
+            'is_active' => true,
+        ]);
+
+        $payload = [
+            'employee_id' => $employee->id,
+            'bulan' => 6,
+            'tahun' => 2026,
+            'gaji_pokok' => '4.500.000',
+            'jumlah_kehadiran' => 26,
+            'hadir' => 24,
+            'sakit_izin' => 0,
+            'tidak_hadir' => 2,
+            'tunj_bulanan_transport' => '260.000',
+            'tunj_mode_transport' => 'bulanan',
+            'pot_angsuran' => 0,
+            'pot_kasbon' => 0,
+            'pot_lain_lain' => 0,
+        ];
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), $payload)
+            ->assertOk();
+
+        $firstThp = (float) SalarySlip::firstOrFail()->take_home_pay;
+
+        $payload['jumlah_kehadiran'] = 24;
+        $payload['hadir'] = 10;
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), $payload)
+            ->assertOk();
+
+        $slip = SalarySlip::firstOrFail();
+
+        $this->assertEquals(4760000.0, $firstThp);
+        $this->assertEquals(4760000.0, (float) $slip->take_home_pay);
+        $this->assertEquals(260000.0, (float) $slip->tunjangan_bulanan['transport']);
+        $this->assertSame('bulanan', $slip->tunjangan_modes['transport']);
     }
 }

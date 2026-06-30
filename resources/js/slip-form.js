@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const bulanan = parseRupiah(bulananEl.value);
                 const harian = bulanan / jumlahKehadiran;
                 harianEl.value = formatNominalInput(harian);
-                totalTunjHarian += harian;
+                tunjanganFlatBulanan += bulanan;
                 totalTunjBulanan += bulanan;
             } else {
                 const harian = parseRupiah(harianEl?.value);

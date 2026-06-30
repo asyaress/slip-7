@@ -20,7 +20,8 @@ class SlipGajiCalculatorTest extends TestCase
 
         $this->assertEquals(250000.0, $result['tunjangan_bulanan']['transport']);
         $this->assertEqualsWithDelta(9615.3846, $result['tunjangan']['transport'], 0.001);
-        $this->assertEqualsWithDelta(192307.6923, $result['take_home_pay'], 0.001);
+        $this->assertSame('bulanan', $result['tunjangan_modes']['transport']);
+        $this->assertEquals(250000.0, $result['take_home_pay']);
     }
 
     public function test_daily_tunjangan_mode_recalculates_monthly_total_from_daily_rate(): void
@@ -36,6 +37,29 @@ class SlipGajiCalculatorTest extends TestCase
 
         $this->assertEquals(10000.0, $result['tunjangan']['transport']);
         $this->assertEquals(260000.0, $result['tunjangan_bulanan']['transport']);
+        $this->assertSame('harian', $result['tunjangan_modes']['transport']);
         $this->assertEquals(200000.0, $result['take_home_pay']);
+    }
+
+    public function test_monthly_tunjangan_mode_is_not_prorated_by_attendance(): void
+    {
+        $first = SlipGajiCalculator::calculate([
+            'gaji_pokok' => 0,
+            'jumlah_kehadiran' => 26,
+            'hadir' => 20,
+            'tunj_bulanan_transport' => 260000,
+            'tunj_mode_transport' => 'bulanan',
+        ]);
+
+        $second = SlipGajiCalculator::calculate([
+            'gaji_pokok' => 0,
+            'jumlah_kehadiran' => 24,
+            'hadir' => 10,
+            'tunj_bulanan_transport' => 260000,
+            'tunj_mode_transport' => 'bulanan',
+        ]);
+
+        $this->assertEquals(260000.0, $first['take_home_pay']);
+        $this->assertEquals(260000.0, $second['take_home_pay']);
     }
 }
