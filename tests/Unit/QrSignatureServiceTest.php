@@ -25,7 +25,7 @@ class QrSignatureServiceTest extends TestCase
             config('employees.approval_signatories.hr')
         );
 
-        $this->assertStringContainsString('Ditandatangani: HR & Umum', $payload);
+        $this->assertStringContainsString('Ditandatangani: HR dan Umum', $payload);
         $this->assertStringContainsString('Penanda tangan: Sri Wahyuni, S.Kom.', $payload);
         $this->assertStringNotContainsString('Ir. Labib Naufal Muttaqien', $payload);
     }

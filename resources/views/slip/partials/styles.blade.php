@@ -258,13 +258,13 @@
     }
 
     .slip-page .signature-section {
-        margin-top: 28px;
+        margin-top: 24px;
         clear: both;
     }
 
     .slip-page .signature-place-date {
         text-align: right;
-        margin-bottom: 24px;
+        margin-bottom: 22px;
         font-size: 10.5pt;
     }
 
@@ -274,58 +274,56 @@
         border-collapse: collapse;
     }
 
-    .slip-page .signature-layout-bottom {
-        margin-top: 24px;
-    }
-
     .slip-page .signature-slot {
+        width: 33.333%;
         vertical-align: top;
-        padding: 0 22px;
-    }
-
-    .slip-page .signature-layout-top .signature-slot {
-        width: 50%;
-    }
-
-    .slip-page .signature-layout-bottom .signature-slot {
-        width: 100%;
-        padding: 0;
+        padding: 0 12px;
     }
 
     .slip-page .signature-cell {
-        width: 300px;
+        width: 100%;
         max-width: 100%;
         margin: 0 auto;
         text-align: center;
     }
 
     .slip-page .signature-role {
-        margin: 0 0 8px;
-        min-height: 40px;
+        margin: 0 0 12px;
+        min-height: 68px;
         font-size: 10pt;
         line-height: 1.35;
         text-align: center;
     }
 
     .slip-page .signature-heading {
-        font-weight: 500;
-        margin-bottom: 3px;
+        display: inline-block;
+        min-width: 150px;
+        padding: 7px 12px;
+        margin-bottom: 12px;
+        background: #10245f;
+        border-radius: 4px;
+        color: #ffffff;
+        font-size: 9.2pt;
+        font-weight: 700;
+        letter-spacing: 0;
     }
 
     .slip-page .signature-title {
+        color: #111827;
+        font-size: 11pt;
         font-weight: 700;
     }
 
     .slip-page .signature-area {
         width: 100%;
-        height: 70px;
+        height: 74px;
         text-align: center;
         margin-bottom: 8px;
     }
 
     .slip-page .qr-image {
-        width: 68px;
-        height: 68px;
+        width: 70px;
+        height: 70px;
         object-fit: contain;
         display: inline-block;
     }
@@ -349,10 +347,12 @@
 
     .slip-page .signature-name {
         margin: 0;
+        padding-top: 9px;
+        border-top: 1px solid #10245f;
+        color: #10245f;
         font-weight: bold;
-        font-size: 9.5pt;
-        text-decoration: underline;
-        text-underline-offset: 3px;
+        font-size: 9.2pt;
+        text-decoration: none;
         line-height: 1.4;
         text-align: center;
     }

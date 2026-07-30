@@ -249,13 +249,13 @@
         }
 
         .signature-section {
-            margin-top: 14px;
+            margin-top: 12px;
             clear: both;
         }
 
         .signature-place-date {
             text-align: right;
-            margin: 0 0 9px;
+            margin: 0 0 10px;
             font-size: 9.5pt;
         }
 
@@ -265,26 +265,14 @@
             border-collapse: collapse;
         }
 
-        .signature-layout-bottom {
-            margin-top: 16px;
-        }
-
         .signature-slot {
+            width: 33.333%;
             vertical-align: top;
-            padding: 0 14px;
-        }
-
-        .signature-layout-top .signature-slot {
-            width: 50%;
-        }
-
-        .signature-layout-bottom .signature-slot {
-            width: 100%;
-            padding: 0;
+            padding: 0 7px;
         }
 
         .signature-cell {
-            width: 250px;
+            width: 100%;
             max-width: 100%;
             margin: 0 auto;
             text-align: center;
@@ -292,40 +280,53 @@
         }
 
         .signature-role {
-            margin: 0 0 5px;
-            min-height: 32px;
-            font-size: 8.8pt;
+            margin: 0 0 7px;
+            min-height: 54px;
+            font-size: 8.4pt;
             line-height: 1.35;
             text-align: center;
         }
 
         .signature-heading {
-            font-weight: normal;
-            margin-bottom: 2px;
+            display: inline-block;
+            min-width: 108px;
+            padding: 5px 7px;
+            margin-bottom: 8px;
+            background: #10245f;
+            border-radius: 3px;
+            color: #ffffff;
+            font-size: 7.4pt;
+            font-weight: bold;
+            letter-spacing: 0;
         }
 
         .signature-title {
+            color: #111827;
+            font-size: 9.2pt;
             font-weight: bold;
         }
 
         .signature-area {
             width: 100%;
-            height: 54px;
+            height: 50px;
             text-align: center;
             margin-bottom: 5px;
         }
 
         .qr-image {
-            width: 52px;
-            height: 52px;
+            width: 48px;
+            height: 48px;
             object-fit: contain;
         }
 
         .signature-name {
             margin: 0;
+            padding-top: 6px;
+            border-top: 1px solid #10245f;
+            color: #10245f;
             font-weight: bold;
-            font-size: 8.2pt;
-            text-decoration: underline;
+            font-size: 7.7pt;
+            text-decoration: none;
             line-height: 1.35;
             text-align: center;
         }
