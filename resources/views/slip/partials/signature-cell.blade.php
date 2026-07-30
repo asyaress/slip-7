@@ -8,6 +8,8 @@
     <div class="signature-role">
         @if($heading !== '')
             <div class="signature-heading">{{ $heading }}</div>
+        @else
+            <div class="signature-heading signature-heading-placeholder">&nbsp;</div>
         @endif
         <div class="signature-title">{{ $title }}</div>
     </div>
