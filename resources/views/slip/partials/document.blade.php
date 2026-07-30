@@ -221,9 +221,8 @@
                 };
             @endphp
 
-            <table class="signature-layout">
+            <table class="signature-layout signature-layout-top">
                 <tr>
-                    <td class="signature-slot"></td>
                     <td class="signature-slot">
                         @include('slip.partials.signature-cell', [
                             'signature' => $signatures['director'] ?? config('employees.approval_signatories.director'),
@@ -237,15 +236,16 @@
                         ])
                     </td>
                 </tr>
+            </table>
+
+            <table class="signature-layout signature-layout-bottom">
                 <tr>
-                    <td class="signature-slot signature-slot-bottom">
+                    <td class="signature-slot">
                         @include('slip.partials.signature-cell', [
                             'signature' => $signatures['finance'] ?? config('employees.approval_signatories.finance'),
                             'qrSrc' => $signatureQr('finance'),
                         ])
                     </td>
-                    <td class="signature-slot signature-slot-bottom"></td>
-                    <td class="signature-slot signature-slot-bottom"></td>
                 </tr>
             </table>
         </div>

@@ -274,18 +274,28 @@
         border-collapse: collapse;
     }
 
-    .slip-page .signature-slot {
-        width: 33.333%;
-        vertical-align: top;
-        padding: 0 8px;
+    .slip-page .signature-layout-bottom {
+        margin-top: 28px;
     }
 
-    .slip-page .signature-slot-bottom {
-        padding-top: 26px;
+    .slip-page .signature-slot {
+        vertical-align: top;
+        padding: 0 18px;
+    }
+
+    .slip-page .signature-layout-top .signature-slot {
+        width: 50%;
+    }
+
+    .slip-page .signature-layout-bottom .signature-slot {
+        width: 100%;
+        padding: 0;
     }
 
     .slip-page .signature-cell {
-        width: 100%;
+        width: 280px;
+        max-width: 100%;
+        margin: 0 auto;
         text-align: center;
     }
 
@@ -332,7 +342,7 @@
     .slip-page .signature-name {
         margin: 0;
         font-weight: bold;
-        font-size: 9.7pt;
+        font-size: 9.4pt;
         text-decoration: underline;
         text-underline-offset: 3px;
         line-height: 1.4;

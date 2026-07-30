@@ -265,18 +265,28 @@
             border-collapse: collapse;
         }
 
-        .signature-slot {
-            width: 33.333%;
-            vertical-align: top;
-            padding: 0 6px;
+        .signature-layout-bottom {
+            margin-top: 18px;
         }
 
-        .signature-slot-bottom {
-            padding-top: 18px;
+        .signature-slot {
+            vertical-align: top;
+            padding: 0 12px;
+        }
+
+        .signature-layout-top .signature-slot {
+            width: 50%;
+        }
+
+        .signature-layout-bottom .signature-slot {
+            width: 100%;
+            padding: 0;
         }
 
         .signature-cell {
-            width: 100%;
+            width: 240px;
+            max-width: 100%;
+            margin: 0 auto;
             text-align: center;
             page-break-inside: avoid;
         }
@@ -306,7 +316,7 @@
         .signature-name {
             margin: 0;
             font-weight: bold;
-            font-size: 8.6pt;
+            font-size: 8.3pt;
             text-decoration: underline;
             line-height: 1.35;
             text-align: center;
