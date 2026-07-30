@@ -268,35 +268,46 @@
         font-size: 11pt;
     }
 
-    .slip-page .signature-wrap {
-        display: flex;
-        justify-content: flex-end;
+    .slip-page .signature-layout {
         width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .slip-page .signature-slot {
+        width: 33.333%;
+        vertical-align: top;
+        padding: 0 8px;
+    }
+
+    .slip-page .signature-slot-bottom {
+        padding-top: 26px;
     }
 
     .slip-page .signature-cell {
-        width: 320px;
-        max-width: 100%;
+        width: 100%;
         text-align: center;
     }
 
     .slip-page .signature-role {
         margin: 0 0 10px;
-        font-size: 11pt;
+        min-height: 42px;
+        font-size: 10.5pt;
+        font-weight: 600;
         line-height: 1.35;
         text-align: center;
     }
 
     .slip-page .signature-area {
         width: 100%;
-        height: 96px;
+        height: 76px;
         text-align: center;
         margin-bottom: 10px;
     }
 
     .slip-page .qr-image {
-        width: 88px;
-        height: 88px;
+        width: 74px;
+        height: 74px;
         object-fit: contain;
         display: inline-block;
     }
@@ -321,11 +332,10 @@
     .slip-page .signature-name {
         margin: 0;
         font-weight: bold;
-        font-size: 11pt;
+        font-size: 9.7pt;
         text-decoration: underline;
         text-underline-offset: 3px;
         line-height: 1.4;
         text-align: center;
-        white-space: nowrap;
     }
 </style>

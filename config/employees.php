@@ -7,8 +7,26 @@ return [
     ],
 
     'director' => [
-        'name' => 'Ir. Labib Naufal Muttaqien S.Kom.',
-        'title' => 'Direktur CV. Toedjoe Sinar Group',
+        'name' => 'Ir. Labib Naufal Muttaqien, S.Kom.',
+        'title' => 'Direktur CV. TOEDJOE SINAR GROUP',
+    ],
+
+    'approval_signatories' => [
+        'director' => [
+            'heading' => 'Mengetahui',
+            'title' => 'Direktur CV. TOEDJOE SINAR GROUP',
+            'name' => 'Ir. Labib Naufal Muttaqien, S.Kom.',
+        ],
+        'hr' => [
+            'heading' => 'Menyetujui',
+            'title' => 'HR & Umum',
+            'name' => 'Sri Wahyuni, S.Kom.',
+        ],
+        'finance' => [
+            'heading' => '',
+            'title' => 'Keuangan',
+            'name' => "Zahrotunnisa Qurrota'ayun Supriyanto, S.E.",
+        ],
     ],
 
     'list' => [

@@ -17,6 +17,7 @@ class SlipPdfService
             'images' => [
                 'kop' => self::embedPublicImage('images/kop.png'),
                 'qr' => self::embedStorageImage($slipData['qr_signature_path'] ?? null),
+                'signatures' => self::embedSignatureImages($slipData['signatures'] ?? []),
             ],
         ]);
 
@@ -63,6 +64,17 @@ class SlipPdfService
         }
 
         return self::embedFile($path);
+    }
+
+    private static function embedSignatureImages(array $signatures): array
+    {
+        $images = [];
+
+        foreach ($signatures as $key => $signature) {
+            $images[$key] = self::embedStorageImage($signature['qr_signature_path'] ?? null);
+        }
+
+        return $images;
     }
 
     private static function svgFileToPngDataUri(string $svgPath): ?string

@@ -259,47 +259,57 @@
             font-size: 10pt;
         }
 
-        .signature-wrap {
+        .signature-layout {
             width: 100%;
-            text-align: right;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        .signature-slot {
+            width: 33.333%;
+            vertical-align: top;
+            padding: 0 6px;
+        }
+
+        .signature-slot-bottom {
+            padding-top: 18px;
         }
 
         .signature-cell {
-            display: inline-block;
-            width: 320px;
-            max-width: 100%;
+            width: 100%;
             text-align: center;
             page-break-inside: avoid;
         }
 
         .signature-role {
             margin: 0 0 6px;
-            font-size: 10pt;
+            min-height: 34px;
+            font-size: 9.2pt;
+            font-weight: bold;
             line-height: 1.35;
             text-align: center;
         }
 
         .signature-area {
             width: 100%;
-            height: 72px;
+            height: 58px;
             text-align: center;
             margin-bottom: 6px;
         }
 
         .qr-image {
-            width: 68px;
-            height: 68px;
+            width: 56px;
+            height: 56px;
             object-fit: contain;
         }
 
         .signature-name {
             margin: 0;
             font-weight: bold;
-            font-size: 10pt;
+            font-size: 8.6pt;
             text-decoration: underline;
             line-height: 1.35;
             text-align: center;
-            white-space: nowrap;
         }
     </style>
 </head>

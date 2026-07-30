@@ -99,7 +99,7 @@ class SlipGajiBuilder
             ]
         );
 
-        QrSignatureService::generate($slip, $saved->id);
+        QrSignatureService::generateAll($slip, $saved->id);
 
         return $saved;
     }
@@ -122,7 +122,20 @@ class SlipGajiBuilder
 
     public static function attachQrSignature(array $slip, ?int $slipId = null): array
     {
-        $qrPath = QrSignatureService::generate($slip, $slipId);
+        $signaturePaths = QrSignatureService::generateAll($slip, $slipId);
+        $signatures = [];
+
+        foreach (QrSignatureService::signatories() as $key => $signatory) {
+            $qrPathForSignatory = $signaturePaths[$key] ?? null;
+            $signatures[$key] = array_merge($signatory, [
+                'key' => $key,
+                'qr_signature_path' => $qrPathForSignatory,
+                'qr_signature_url' => QrSignatureService::url($qrPathForSignatory),
+            ]);
+        }
+
+        $qrPath = $signaturePaths['director'] ?? null;
+        $slip['signatures'] = $signatures;
         $slip['qr_signature_url'] = QrSignatureService::url($qrPath);
         $slip['qr_signature_path'] = $qrPath;
 

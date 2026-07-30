@@ -210,18 +210,44 @@
         <div class="slip-section signature-section">
             <p class="signature-place-date">{{ config('company.location') }}, {{ $slip['tanggal_cetak'] }}</p>
 
-            <div class="signature-wrap">
-                <div class="signature-cell">
-                    <p class="signature-role">{{ config('employees.director.title') }},</p>
-                    <div class="signature-area">
-                        @php $qrSrc = ($images ?? [])['qr'] ?? ($slip['qr_signature_url'] ?? null); @endphp
-                        @if(!empty($qrSrc))
-                            <img src="{{ $qrSrc }}" alt="QR Dokumen" class="qr-image">
-                        @endif
-                    </div>
-                    <p class="signature-name">{{ config('employees.director.name') }}</p>
-                </div>
-            </div>
+            @php
+                $signatures = $slip['signatures'] ?? [];
+                $allImages = $images ?? [];
+                $signatureImages = $allImages['signatures'] ?? [];
+                $signatureQr = function (string $key) use ($signatures, $signatureImages, $allImages, $slip): ?string {
+                    return $signatureImages[$key]
+                        ?? ($signatures[$key]['qr_signature_url'] ?? null)
+                        ?? (($key === 'director') ? ($allImages['qr'] ?? ($slip['qr_signature_url'] ?? null)) : null);
+                };
+            @endphp
+
+            <table class="signature-layout">
+                <tr>
+                    <td class="signature-slot"></td>
+                    <td class="signature-slot">
+                        @include('slip.partials.signature-cell', [
+                            'signature' => $signatures['director'] ?? config('employees.approval_signatories.director'),
+                            'qrSrc' => $signatureQr('director'),
+                        ])
+                    </td>
+                    <td class="signature-slot">
+                        @include('slip.partials.signature-cell', [
+                            'signature' => $signatures['hr'] ?? config('employees.approval_signatories.hr'),
+                            'qrSrc' => $signatureQr('hr'),
+                        ])
+                    </td>
+                </tr>
+                <tr>
+                    <td class="signature-slot signature-slot-bottom">
+                        @include('slip.partials.signature-cell', [
+                            'signature' => $signatures['finance'] ?? config('employees.approval_signatories.finance'),
+                            'qrSrc' => $signatureQr('finance'),
+                        ])
+                    </td>
+                    <td class="signature-slot signature-slot-bottom"></td>
+                    <td class="signature-slot signature-slot-bottom"></td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>
