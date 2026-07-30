@@ -316,6 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${week.periode}
                     <input type="hidden" name="lembur[${index}][minggu]" value="${week.minggu}">
                     <input type="hidden" name="lembur[${index}][periode]" value="${week.periode}">
+                    <input type="hidden" name="lembur[${index}][date_start]" value="${week.date_start}">
+                    <input type="hidden" name="lembur[${index}][date_end]" value="${week.date_end}">
                 </div>
                 <div class="sm:col-span-4 rupiah-field">
                     <span class="rupiah-prefix">Rp</span>

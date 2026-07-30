@@ -253,6 +253,8 @@ class SlipGajiController extends Controller
             'lembur.*.nominal' => 'nullable',
             'lembur.*.minggu' => 'nullable|integer|min:1',
             'lembur.*.periode' => 'nullable|string|max:50',
+            'lembur.*.date_start' => 'nullable|date_format:Y-m-d',
+            'lembur.*.date_end' => 'nullable|date_format:Y-m-d',
             'lembur.*.status' => 'nullable|in:belum_dibayar,sudah_dibayar',
         ], $tunjRules));
 

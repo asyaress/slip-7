@@ -98,7 +98,9 @@ class CopyPreviousSalarySlipTest extends TestCase
         $this->assertCount(count($expectedJuneWeeks), $copiedSlipA->lembur['weeks']);
         $this->assertSame($expectedJuneWeeks[0]['periode'], $copiedSlipA->lembur['weeks'][0]['periode']);
         $this->assertEquals(50000.0, (float) $copiedSlipA->lembur['weeks'][0]['nominal']);
-        $this->assertEquals(0.0, (float) $copiedSlipA->lembur['weeks'][4]['nominal']);
+        $this->assertCount(4, $copiedSlipA->lembur['weeks']);
+        $this->assertSame('2026-06-28', $copiedSlipA->lembur['weeks'][3]['date_end']);
+        $this->assertEquals(125000.0, (float) $copiedSlipA->lembur['weeks'][3]['nominal']);
 
         $existingTarget->refresh();
         $this->assertSame($existingTarget->id, SalarySlip::where('employee_id', $employeeB->id)->where('bulan', 6)->where('tahun', 2026)->firstOrFail()->id);
@@ -212,6 +214,8 @@ class CopyPreviousSalarySlipTest extends TestCase
             $weeks[] = [
                 'minggu' => $week['minggu'],
                 'periode' => $week['periode'],
+                'date_start' => $week['date_start'],
+                'date_end' => $week['date_end'],
                 'nominal' => (float) ($overrides['lembur_nominals'][$index] ?? 0),
                 'status' => $overrides['lembur_statuses'][$index] ?? LemburWeekService::STATUS_BELUM_DIBAYAR,
             ];

@@ -11,7 +11,8 @@ class LemburWeekService
     public const STATUS_SUDAH_DIBAYAR = 'sudah_dibayar';
 
     /**
-     * Minggu kerja lapangan: Senin–Sabtu per minggu dalam bulan terpilih.
+     * Periode lembur mingguan: Senin-Minggu.
+     * Minggu yang melintasi bulan masuk ke bulan tempat periode selesai.
      *
      * @return array<int, array{minggu: int, periode: string, date_start: string, date_end: string}>
      */
@@ -20,29 +21,23 @@ class LemburWeekService
         $monthStart = Carbon::create($tahun, $bulan, 1)->startOfDay();
         $monthEnd = $monthStart->copy()->endOfMonth();
         $weeks = [];
-        $cursor = $monthStart->copy();
+        $weekEnd = $monthStart->copy();
 
-        while ($cursor->lte($monthEnd)) {
-            if ($cursor->isMonday()) {
-                $weekStart = $cursor->copy();
-                $weekEnd = $cursor->copy()->addDays(5);
+        while (! $weekEnd->isSunday()) {
+            $weekEnd->addDay();
+        }
 
-                if ($weekEnd->gt($monthEnd)) {
-                    $weekEnd = $monthEnd->copy();
-                }
+        while ($weekEnd->lte($monthEnd)) {
+            $weekStart = $weekEnd->copy()->subDays(6);
 
-                $monthLabel = $weekStart->locale('id')->translatedFormat('M');
-                $periode = $weekStart->format('j').'-'.$weekEnd->format('j').' '.$monthLabel;
+            $weeks[] = [
+                'minggu' => count($weeks) + 1,
+                'periode' => self::periodLabel($weekStart, $weekEnd),
+                'date_start' => $weekStart->format('Y-m-d'),
+                'date_end' => $weekEnd->format('Y-m-d'),
+            ];
 
-                $weeks[] = [
-                    'minggu' => count($weeks) + 1,
-                    'periode' => $periode,
-                    'date_start' => $weekStart->format('Y-m-d'),
-                    'date_end' => $weekEnd->format('Y-m-d'),
-                ];
-            }
-
-            $cursor->addDay();
+            $weekEnd->addWeek();
         }
 
         return $weeks;
@@ -76,6 +71,8 @@ class LemburWeekService
             $weeks[] = [
                 'minggu' => $template['minggu'],
                 'periode' => $template['periode'],
+                'date_start' => $template['date_start'],
+                'date_end' => $template['date_end'],
                 'nominal' => $nominal,
                 'status' => self::normalizeStatus($row['status'] ?? null),
             ];
@@ -124,6 +121,23 @@ class LemburWeekService
         }
 
         return $map;
+    }
+
+    private static function periodLabel(Carbon $weekStart, Carbon $weekEnd): string
+    {
+        $startMonth = $weekStart->locale('id')->translatedFormat('M');
+        $endMonth = $weekEnd->locale('id')->translatedFormat('M');
+
+        if ($weekStart->isSameMonth($weekEnd) && $weekStart->isSameYear($weekEnd)) {
+            return $weekStart->format('j').'-'.$weekEnd->format('j').' '.$endMonth;
+        }
+
+        if ($weekStart->isSameYear($weekEnd)) {
+            return $weekStart->format('j').' '.$startMonth.'-'.$weekEnd->format('j').' '.$endMonth;
+        }
+
+        return $weekStart->format('j').' '.$startMonth.' '.$weekStart->year
+            .'-'.$weekEnd->format('j').' '.$endMonth.' '.$weekEnd->year;
     }
 
     /**

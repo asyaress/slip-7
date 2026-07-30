@@ -130,6 +130,8 @@ class SlipGajiBuilder
             return [
                 'minggu' => (int) $week['minggu'],
                 'periode' => $week['periode'],
+                'date_start' => $week['date_start'] ?? null,
+                'date_end' => $week['date_end'] ?? null,
                 'nominal' => (float) ($week['nominal'] ?? 0),
                 'status' => LemburWeekService::normalizeStatus($week['status'] ?? null),
             ];
