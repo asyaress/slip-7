@@ -225,14 +225,14 @@
                 <tr>
                     <td class="signature-slot">
                         @include('slip.partials.signature-cell', [
-                            'signature' => $signatures['director'] ?? config('employees.approval_signatories.director'),
-                            'qrSrc' => $signatureQr('director'),
+                            'signature' => $signatures['hr'] ?? config('employees.approval_signatories.hr'),
+                            'qrSrc' => $signatureQr('hr'),
                         ])
                     </td>
                     <td class="signature-slot">
                         @include('slip.partials.signature-cell', [
-                            'signature' => $signatures['hr'] ?? config('employees.approval_signatories.hr'),
-                            'qrSrc' => $signatureQr('hr'),
+                            'signature' => $signatures['finance'] ?? config('employees.approval_signatories.finance'),
+                            'qrSrc' => $signatureQr('finance'),
                         ])
                     </td>
                 </tr>
@@ -242,8 +242,8 @@
                 <tr>
                     <td class="signature-slot">
                         @include('slip.partials.signature-cell', [
-                            'signature' => $signatures['finance'] ?? config('employees.approval_signatories.finance'),
-                            'qrSrc' => $signatureQr('finance'),
+                            'signature' => $signatures['director'] ?? config('employees.approval_signatories.director'),
+                            'qrSrc' => $signatureQr('director'),
                         ])
                     </td>
                 </tr>
