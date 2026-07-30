@@ -290,16 +290,16 @@
         .signature-heading {
             display: block;
             padding: 0;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             color: #111111;
-            font-size: 7.4pt;
+            font-size: 8.4pt;
             font-weight: bold;
             letter-spacing: 0;
         }
 
         .signature-title {
-            color: #111827;
-            font-size: 9.2pt;
+            color: #111111;
+            font-size: 8.4pt;
             font-weight: bold;
         }
 

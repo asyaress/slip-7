@@ -298,17 +298,17 @@
     .slip-page .signature-heading {
         display: block;
         padding: 0;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         color: #111111;
-        font-size: 9.2pt;
-        font-weight: 700;
+        font-size: 10pt;
+        font-weight: 600;
         letter-spacing: 0;
     }
 
     .slip-page .signature-title {
-        color: #111827;
-        font-size: 11pt;
-        font-weight: 700;
+        color: #111111;
+        font-size: 10pt;
+        font-weight: 600;
     }
 
     .slip-page .signature-area {

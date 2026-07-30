@@ -13,17 +13,17 @@ return [
 
     'approval_signatories' => [
         'director' => [
-            'heading' => 'DISETUJUI OLEH',
+            'heading' => 'Disetujui oleh,',
             'title' => 'Direktur',
             'name' => 'Ir. Labib Naufal Muttaqien, S.Kom.',
         ],
         'hr' => [
-            'heading' => 'DISIAPKAN OLEH',
+            'heading' => 'Disiapkan oleh,',
             'title' => 'HR dan Umum',
             'name' => 'Sri Wahyuni, S.Kom.',
         ],
         'finance' => [
-            'heading' => 'DIPERIKSA OLEH',
+            'heading' => 'Diperiksa oleh,',
             'title' => 'Keuangan',
             'name' => "Zahrotunnisa Qurrota'ayun Supriyanto, S.E.",
         ],
