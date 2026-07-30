@@ -5,10 +5,11 @@ namespace App\Services;
 use App\Models\SalarySlip;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class SlipPdfService
 {
-    public static function generate(SalarySlip $slip): string
+    public static function generate(SalarySlip $slip, ?string $password = null): string
     {
         $slipData = $slip->toSlipArray();
 
@@ -26,7 +27,28 @@ class SlipPdfService
             ->setOption('isRemoteEnabled', true)
             ->setOption('defaultFont', 'DejaVu Serif');
 
+        if ($password !== null && $password !== '') {
+            $pdf->setEncryption($password, self::ownerPassword(), ['print']);
+        }
+
         return $pdf->output();
+    }
+
+    public static function generateForEmail(SalarySlip $slip): string
+    {
+        return self::generate($slip, self::emailPassword($slip));
+    }
+
+    public static function emailPassword(SalarySlip $slip): string
+    {
+        $slip->loadMissing('employee');
+        $birthDate = $slip->employee?->tgl_lahir;
+
+        if (! $birthDate) {
+            throw new RuntimeException('Tanggal lahir karyawan belum diisi, PDF email tidak bisa diproteksi password.');
+        }
+
+        return $birthDate->format('dmY');
     }
 
     public static function filename(SalarySlip $slip): string
@@ -42,6 +64,11 @@ class SlipPdfService
         $path = public_path($relativePath);
 
         return self::embedFile($path);
+    }
+
+    private static function ownerPassword(): string
+    {
+        return substr(hash('sha256', (string) config('app.key')), 0, 32);
     }
 
     private static function embedStorageImage(?string $relativePath): ?string

@@ -38,7 +38,7 @@ class SlipGajiMail extends Mailable
     {
         return [
             Attachment::fromData(
-                fn () => SlipPdfService::generate($this->salarySlip),
+                fn () => SlipPdfService::generateForEmail($this->salarySlip),
                 SlipPdfService::filename($this->salarySlip),
             )->withMime('application/pdf'),
         ];

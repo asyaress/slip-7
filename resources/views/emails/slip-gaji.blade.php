@@ -24,11 +24,16 @@
             Rincian lengkap terlampir dalam file PDF pada email ini.
         </p>
 
+        <p>
+            File PDF dilindungi password. Gunakan tanggal lahir Anda dengan format
+            <strong>DDMMYYYY</strong> untuk membukanya.
+        </p>
+
         <p>Demikian pemberitahuan ini kami sampaikan. Apabila ada pertanyaan, silakan hubungi HRD.</p>
 
         <div class="footer">
             <p>Email ini dikirim otomatis dari sistem Slip Gaji {{ config('company.short_name') }}.<br>
-            HRD — {{ config('company.hrd_email') }}</p>
+            HRD - {{ config('company.hrd_email') }}</p>
         </div>
     </div>
 </body>
