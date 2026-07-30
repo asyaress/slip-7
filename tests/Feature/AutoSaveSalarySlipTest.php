@@ -33,6 +33,7 @@ class AutoSaveSalarySlipTest extends TestCase
                 'tahun' => 2026,
                 'gaji_pokok' => '4.500.000',
                 'bonus' => '300.000',
+                'bonus_description' => 'Kinerja Juli',
                 'jumlah_kehadiran' => 26,
                 'hadir' => 24,
                 'sakit_izin' => 1,
@@ -64,6 +65,7 @@ class AutoSaveSalarySlipTest extends TestCase
         $this->assertSame($employee->id, $slip->employee_id);
         $this->assertEquals(4500000.0, (float) $slip->gaji_pokok);
         $this->assertEquals(300000.0, (float) $slip->bonus);
+        $this->assertSame('Kinerja Juli', $slip->bonus_description);
         $this->assertEquals(10000.0, (float) $slip->tunjangan['transport']);
         $this->assertEquals(260000.0, (float) $slip->tunjangan_bulanan['transport']);
         $this->assertSame('harian', $slip->tunjangan_modes['transport']);

@@ -242,6 +242,7 @@ class SlipGajiController extends Controller
             'tahun' => 'required|integer|min:2020|max:2100',
             'gaji_pokok' => 'required|numeric|min:0',
             'bonus' => 'nullable|numeric|min:0',
+            'bonus_description' => 'nullable|string|max:150',
             'pot_angsuran' => 'nullable|numeric|min:0',
             'pot_kasbon' => 'nullable|numeric|min:0',
             'pot_lain_lain' => 'nullable|numeric|min:0',

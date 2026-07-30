@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
     ];
 
+    const textFields = ['bonus_description'];
+
     const potonganIds = ['pot_angsuran', 'pot_kasbon', 'pot_lain_lain'];
 
     function formatNominalInput(value) {
@@ -294,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tunjanganHarianIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         tunjanganBulananIds.forEach(field => setFieldValue(field, data[field] ?? 0));
         numberFields.forEach(field => setFieldValue(field, data[field] ?? 0));
+        textFields.forEach(field => setFieldValue(field, data[field] ?? ''));
         tunjanganModeIds.forEach(field => setFieldValue(field, data[field] ?? 'harian'));
         setFasilitasCheckboxes(data.fasilitas ?? []);
         syncBulananOverrideFlags();

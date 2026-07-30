@@ -68,6 +68,19 @@ class SlipGajiCalculator
         return $selected;
     }
 
+    public static function bonusLabel(?string $description): string
+    {
+        $description = trim((string) $description);
+
+        if ($description === '') {
+            return 'Bonus';
+        }
+
+        return preg_match('/^bonus\b/i', $description) === 1
+            ? $description
+            : 'Bonus '.$description;
+    }
+
     /**
      * @return array{harian: array<string, float>, bulanan: array<string, float>, modes: array<string, string>}
      */

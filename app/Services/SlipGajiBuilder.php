@@ -42,6 +42,8 @@ class SlipGajiBuilder
             'tanggal_cetak' => Carbon::now()->locale('id')->translatedFormat('d F Y'),
             'gaji_pokok' => (float) $validated['gaji_pokok'],
             'bonus' => (float) ($validated['bonus'] ?? 0),
+            'bonus_description' => self::normalizeBonusDescription($validated['bonus_description'] ?? null),
+            'bonus_label' => SlipGajiCalculator::bonusLabel($validated['bonus_description'] ?? null),
             'tunjangan' => $calculation['tunjangan'],
             'tunjangan_bulanan' => $calculation['tunjangan_bulanan'],
             'tunjangan_modes' => $calculation['tunjangan_modes'],
@@ -74,6 +76,7 @@ class SlipGajiBuilder
                 'nomor_surat' => $slip['nomor_surat'],
                 'gaji_pokok' => $slip['gaji_pokok'],
                 'bonus' => $slip['bonus'] ?? 0,
+                'bonus_description' => $slip['bonus_description'] ?? null,
                 'tunjangan' => $slip['tunjangan'],
                 'tunjangan_bulanan' => $slip['tunjangan_bulanan'] ?? null,
                 'tunjangan_modes' => $slip['tunjangan_modes'] ?? null,
@@ -143,5 +146,12 @@ class SlipGajiBuilder
             'weeks' => $weeks,
             'total' => array_sum(array_column($weeks, 'nominal')),
         ];
+    }
+
+    private static function normalizeBonusDescription(?string $description): ?string
+    {
+        $description = trim((string) $description);
+
+        return $description === '' ? null : $description;
     }
 }

@@ -168,6 +168,14 @@
                                 class="rupiah-input calc-trigger">
                         </div>
                     </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                        <label class="text-sm font-medium text-slate-700">Keterangan Bonus</label>
+                        <input type="text" name="bonus_description" id="bonus_description"
+                            value="{{ $formValue('bonus_description') }}"
+                            maxlength="150"
+                            placeholder="Contoh: Kinerja Juli"
+                            class="sm:col-span-2 input-field calc-trigger">
+                    </div>
                 </div>
             </section>
 

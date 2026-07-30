@@ -68,7 +68,7 @@
             @if(($slip['bonus'] ?? 0) > 0)
             <tr>
                 <td></td>
-                <td>Bonus</td>
+                <td>{{ $slip['bonus_label'] ?? \App\Services\SlipGajiCalculator::bonusLabel($slip['bonus_description'] ?? null) }}</td>
                 <td>:</td>
                 <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['bonus']) }}</td>
                 <td class="unit-label">Masuk THP</td>

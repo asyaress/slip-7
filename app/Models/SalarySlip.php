@@ -9,7 +9,7 @@ class SalarySlip extends Model
 {
     protected $fillable = [
         'employee_id', 'bulan', 'tahun', 'nomor_surat',
-        'gaji_pokok', 'bonus', 'tunjangan', 'tunjangan_bulanan', 'tunjangan_modes', 'potongan',
+        'gaji_pokok', 'bonus', 'bonus_description', 'tunjangan', 'tunjangan_bulanan', 'tunjangan_modes', 'potongan',
         'bpjs_kesehatan', 'makan_siang_malam', 'pensiun', 'fasilitas',
         'lembur', 'total_lembur',
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
@@ -159,6 +159,7 @@ class SalarySlip extends Model
             'tahun' => $this->tahun,
             'gaji_pokok' => $this->gaji_pokok,
             'bonus' => $this->bonus ?? 0,
+            'bonus_description' => $this->bonus_description,
             'pot_angsuran' => $potongan['angsuran'] ?? 0,
             'pot_kasbon' => $potongan['kasbon'] ?? 0,
             'pot_lain_lain' => $potongan['lain_lain'] ?? 0,
@@ -256,6 +257,8 @@ class SalarySlip extends Model
             'tanggal_cetak' => $this->updated_at->locale('id')->translatedFormat('d F Y'),
             'gaji_pokok' => $this->gaji_pokok,
             'bonus' => $this->bonus ?? 0,
+            'bonus_description' => $this->bonus_description,
+            'bonus_label' => \App\Services\SlipGajiCalculator::bonusLabel($this->bonus_description),
             'tunjangan' => $tunjanganHarian,
             'tunjangan_bulanan' => $tunjanganBulanan,
             'tunjangan_modes' => $tunjanganModes,

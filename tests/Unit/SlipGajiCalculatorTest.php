@@ -80,4 +80,11 @@ class SlipGajiCalculatorTest extends TestCase
         $this->assertEquals(4990000.0, $result['take_home_pay']);
         $this->assertEquals(5115000.0, $result['total_pendapatan']);
     }
+
+    public function test_bonus_label_uses_admin_description_without_doubling_bonus_word(): void
+    {
+        $this->assertSame('Bonus', SlipGajiCalculator::bonusLabel(null));
+        $this->assertSame('Bonus Kinerja Juli', SlipGajiCalculator::bonusLabel('Kinerja Juli'));
+        $this->assertSame('Bonus Target Juli', SlipGajiCalculator::bonusLabel('Bonus Target Juli'));
+    }
 }
