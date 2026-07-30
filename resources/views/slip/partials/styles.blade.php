@@ -258,14 +258,14 @@
     }
 
     .slip-page .signature-section {
-        margin-top: 32px;
+        margin-top: 28px;
         clear: both;
     }
 
     .slip-page .signature-place-date {
         text-align: right;
-        margin-bottom: 28px;
-        font-size: 11pt;
+        margin-bottom: 24px;
+        font-size: 10.5pt;
     }
 
     .slip-page .signature-layout {
@@ -275,12 +275,12 @@
     }
 
     .slip-page .signature-layout-bottom {
-        margin-top: 28px;
+        margin-top: 24px;
     }
 
     .slip-page .signature-slot {
         vertical-align: top;
-        padding: 0 18px;
+        padding: 0 22px;
     }
 
     .slip-page .signature-layout-top .signature-slot {
@@ -293,31 +293,39 @@
     }
 
     .slip-page .signature-cell {
-        width: 280px;
+        width: 300px;
         max-width: 100%;
         margin: 0 auto;
         text-align: center;
     }
 
     .slip-page .signature-role {
-        margin: 0 0 10px;
-        min-height: 42px;
-        font-size: 10.5pt;
-        font-weight: 600;
+        margin: 0 0 8px;
+        min-height: 40px;
+        font-size: 10pt;
         line-height: 1.35;
         text-align: center;
     }
 
+    .slip-page .signature-heading {
+        font-weight: 500;
+        margin-bottom: 3px;
+    }
+
+    .slip-page .signature-title {
+        font-weight: 700;
+    }
+
     .slip-page .signature-area {
         width: 100%;
-        height: 76px;
+        height: 70px;
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .slip-page .qr-image {
-        width: 74px;
-        height: 74px;
+        width: 68px;
+        height: 68px;
         object-fit: contain;
         display: inline-block;
     }
@@ -342,7 +350,7 @@
     .slip-page .signature-name {
         margin: 0;
         font-weight: bold;
-        font-size: 9.4pt;
+        font-size: 9.5pt;
         text-decoration: underline;
         text-underline-offset: 3px;
         line-height: 1.4;

@@ -13,18 +13,18 @@ return [
 
     'approval_signatories' => [
         'director' => [
-            'heading' => 'Mengetahui',
+            'heading' => 'Mengetahui,',
             'title' => 'Direktur CV. TOEDJOE SINAR GROUP',
             'name' => 'Ir. Labib Naufal Muttaqien, S.Kom.',
         ],
         'hr' => [
-            'heading' => 'Menyetujui',
+            'heading' => 'Menyetujui,',
             'title' => 'HR & Umum',
             'name' => 'Sri Wahyuni, S.Kom.',
         ],
         'finance' => [
             'heading' => '',
-            'title' => 'Keuangan',
+            'title' => 'Keuangan,',
             'name' => "Zahrotunnisa Qurrota'ayun Supriyanto, S.E.",
         ],
     ],

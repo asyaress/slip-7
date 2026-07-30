@@ -7,9 +7,9 @@
 <div class="signature-cell">
     <div class="signature-role">
         @if($heading !== '')
-            <div>{{ $heading }}</div>
+            <div class="signature-heading">{{ $heading }}</div>
         @endif
-        <div>{{ $title }}</div>
+        <div class="signature-title">{{ $title }}</div>
     </div>
     <div class="signature-area">
         @if(!empty($qrSrc))

@@ -249,14 +249,14 @@
         }
 
         .signature-section {
-            margin-top: 16px;
+            margin-top: 14px;
             clear: both;
         }
 
         .signature-place-date {
             text-align: right;
-            margin: 0 0 10px;
-            font-size: 10pt;
+            margin: 0 0 9px;
+            font-size: 9.5pt;
         }
 
         .signature-layout {
@@ -266,12 +266,12 @@
         }
 
         .signature-layout-bottom {
-            margin-top: 18px;
+            margin-top: 16px;
         }
 
         .signature-slot {
             vertical-align: top;
-            padding: 0 12px;
+            padding: 0 14px;
         }
 
         .signature-layout-top .signature-slot {
@@ -284,7 +284,7 @@
         }
 
         .signature-cell {
-            width: 240px;
+            width: 250px;
             max-width: 100%;
             margin: 0 auto;
             text-align: center;
@@ -292,31 +292,39 @@
         }
 
         .signature-role {
-            margin: 0 0 6px;
-            min-height: 34px;
-            font-size: 9.2pt;
-            font-weight: bold;
+            margin: 0 0 5px;
+            min-height: 32px;
+            font-size: 8.8pt;
             line-height: 1.35;
             text-align: center;
         }
 
+        .signature-heading {
+            font-weight: normal;
+            margin-bottom: 2px;
+        }
+
+        .signature-title {
+            font-weight: bold;
+        }
+
         .signature-area {
             width: 100%;
-            height: 58px;
+            height: 54px;
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .qr-image {
-            width: 56px;
-            height: 56px;
+            width: 52px;
+            height: 52px;
             object-fit: contain;
         }
 
         .signature-name {
             margin: 0;
             font-weight: bold;
-            font-size: 8.3pt;
+            font-size: 8.2pt;
             text-decoration: underline;
             line-height: 1.35;
             text-align: center;
