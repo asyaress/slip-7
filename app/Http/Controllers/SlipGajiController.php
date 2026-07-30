@@ -18,6 +18,7 @@ class SlipGajiController extends Controller
 {
     private const RUPIAH_FIELDS = [
         'gaji_pokok',
+        'bonus',
         'pot_angsuran', 'pot_kasbon', 'pot_lain_lain',
     ];
 
@@ -240,6 +241,7 @@ class SlipGajiController extends Controller
             'bulan' => 'required|integer|min:1|max:12',
             'tahun' => 'required|integer|min:2020|max:2100',
             'gaji_pokok' => 'required|numeric|min:0',
+            'bonus' => 'nullable|numeric|min:0',
             'pot_angsuran' => 'nullable|numeric|min:0',
             'pot_kasbon' => 'nullable|numeric|min:0',
             'pot_lain_lain' => 'nullable|numeric|min:0',

@@ -32,6 +32,7 @@ class AutoSaveSalarySlipTest extends TestCase
                 'bulan' => 6,
                 'tahun' => 2026,
                 'gaji_pokok' => '4.500.000',
+                'bonus' => '300.000',
                 'jumlah_kehadiran' => 26,
                 'hadir' => 24,
                 'sakit_izin' => 1,
@@ -62,10 +63,11 @@ class AutoSaveSalarySlipTest extends TestCase
 
         $this->assertSame($employee->id, $slip->employee_id);
         $this->assertEquals(4500000.0, (float) $slip->gaji_pokok);
+        $this->assertEquals(300000.0, (float) $slip->bonus);
         $this->assertEquals(10000.0, (float) $slip->tunjangan['transport']);
         $this->assertEquals(260000.0, (float) $slip->tunjangan_bulanan['transport']);
         $this->assertSame('harian', $slip->tunjangan_modes['transport']);
-        $this->assertEquals(4690000.0, (float) $slip->take_home_pay);
+        $this->assertEquals(4990000.0, (float) $slip->take_home_pay);
     }
 
     public function test_auto_save_does_not_overwrite_period_tunjangan_defaults(): void

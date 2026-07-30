@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let autoSaveSequence = 0;
 
     const rupiahFields = [
-        'gaji_pokok',
+        'gaji_pokok', 'bonus',
         'pot_angsuran', 'pot_kasbon', 'pot_lain_lain',
     ];
 
@@ -559,6 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculate() {
         const gajiPokok = parseRupiah(document.getElementById('gaji_pokok')?.value);
+        const bonus = parseRupiah(document.getElementById('bonus')?.value);
         const jumlahKehadiran = getJumlahKehadiran();
         const hadir = parseInt(document.getElementById('hadir')?.value, 10) || 0;
 
@@ -602,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tunjanganEarned = (totalTunjHarian * hadir) + tunjanganFlatBulanan;
         const totalPotongan = sumFields(potonganIds);
         const totalLembur = calculateLembur();
-        const thp = gajiPokok + tunjanganEarned - totalPotongan;
+        const thp = gajiPokok + bonus + tunjanganEarned - totalPotongan;
         const totalPendapatan = thp + totalLembur;
 
         const summaryTunjHarian = document.getElementById('summary-tunj-harian');
@@ -625,6 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryTunjBulananTotal.textContent = formatRupiahDisplay(totalTunjBulanan);
         }
 
+        document.getElementById('summary-bonus').textContent = formatRupiahDisplay(bonus);
         document.getElementById('summary-potongan').textContent = formatRupiahDisplay(totalPotongan);
         document.getElementById('summary-thp').textContent = formatRupiahDisplay(thp);
         const summaryPendapatan = document.getElementById('summary-pendapatan');

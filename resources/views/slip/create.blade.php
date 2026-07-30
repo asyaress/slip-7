@@ -148,14 +148,25 @@
 
             {{-- Gaji Pokok --}}
             <section class="card p-6">
-                <h2 class="text-base font-semibold text-slate-900 mb-4">4. Gaji Pokok</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                    <label class="text-sm font-medium text-slate-700">Gaji Pokok <span class="text-slate-400 font-normal">(Per Bulan)</span></label>
-                    <div class="sm:col-span-2 rupiah-field">
-                        <span class="rupiah-prefix">Rp</span>
-                        <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
-                            value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
-                            class="rupiah-input calc-trigger">
+                <h2 class="text-base font-semibold text-slate-900 mb-4">4. Gaji Pokok & Bonus</h2>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                        <label class="text-sm font-medium text-slate-700">Gaji Pokok <span class="text-slate-400 font-normal">(Per Bulan)</span></label>
+                        <div class="sm:col-span-2 rupiah-field">
+                            <span class="rupiah-prefix">Rp</span>
+                            <input type="text" inputmode="numeric" name="gaji_pokok" id="gaji_pokok"
+                                value="{{ $formatFormRupiah('gaji_pokok') }}" required placeholder="0"
+                                class="rupiah-input calc-trigger">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                        <label class="text-sm font-medium text-slate-700">Bonus <span class="text-slate-400 font-normal">(Masuk THP)</span></label>
+                        <div class="sm:col-span-2 rupiah-field">
+                            <span class="rupiah-prefix">Rp</span>
+                            <input type="text" inputmode="numeric" name="bonus" id="bonus"
+                                value="{{ $formatFormRupiah('bonus', 0) }}" placeholder="0"
+                                class="rupiah-input calc-trigger">
+                        </div>
                     </div>
                 </div>
             </section>
@@ -299,6 +310,10 @@
                     <dd id="summary-tunj-flat" class="font-medium">Rp 0</dd>
                 </div>
                 <div class="flex justify-between">
+                    <dt class="text-slate-500">Bonus</dt>
+                    <dd id="summary-bonus" class="font-medium text-emerald-700">Rp 0</dd>
+                </div>
+                <div class="flex justify-between">
                     <dt class="text-slate-500">Total Potongan</dt>
                     <dd id="summary-potongan" class="font-medium text-red-600">Rp 0</dd>
                 </div>
@@ -316,7 +331,10 @@
                 </div>
             </dl>
             <p class="mt-4 text-xs text-slate-400">
+                THP = Gaji Pokok + Bonus + (Tunjangan/Hari x Hadir) + Tunj. Tempat Tinggal - Potongan<br>
+                {{--
                 THP = Gaji Pokok + (Tunjangan/Hari × Hadir) + Tunj. Tempat Tinggal − Potongan<br>
+                --}}
                 Total Pendapatan = THP + Lembur
             </p>
         </div>

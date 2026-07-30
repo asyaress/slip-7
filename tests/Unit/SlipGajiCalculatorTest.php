@@ -62,4 +62,22 @@ class SlipGajiCalculatorTest extends TestCase
         $this->assertEquals(260000.0, $first['take_home_pay']);
         $this->assertEquals(260000.0, $second['take_home_pay']);
     }
+
+    public function test_bonus_is_added_to_take_home_pay_before_overtime_total(): void
+    {
+        $result = SlipGajiCalculator::calculate([
+            'gaji_pokok' => 4500000,
+            'bonus' => 300000,
+            'jumlah_kehadiran' => 26,
+            'hadir' => 24,
+            'tunj_harian_transport' => 10000,
+            'tunj_bulanan_transport' => 260000,
+            'tunj_mode_transport' => 'harian',
+            'pot_angsuran' => 50000,
+            'total_lembur' => 125000,
+        ]);
+
+        $this->assertEquals(4990000.0, $result['take_home_pay']);
+        $this->assertEquals(5115000.0, $result['total_pendapatan']);
+    }
 }

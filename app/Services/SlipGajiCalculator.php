@@ -128,6 +128,7 @@ class SlipGajiCalculator
     public static function calculate(array $data): array
     {
         $gajiPokok = (float) ($data['gaji_pokok'] ?? 0);
+        $bonus = (float) ($data['bonus'] ?? 0);
         $jumlahKehadiran = max(1, (int) ($data['jumlah_kehadiran'] ?? 26));
         $hadir = (int) ($data['hadir'] ?? 0);
         $totalLembur = (float) ($data['total_lembur'] ?? ($data['lembur']['total'] ?? 0));
@@ -157,8 +158,8 @@ class SlipGajiCalculator
         ];
         $totalPotongan = array_sum($potongan);
 
-        // THP = Gaji Pokok + (Tunjangan harian x Hadir) + Tunjangan bulanan fixed - Potongan.
-        $takeHomePay = $gajiPokok + $tunjanganEarned - $totalPotongan;
+        // THP = Gaji Pokok + Bonus + (Tunjangan harian x Hadir) + Tunjangan bulanan fixed - Potongan.
+        $takeHomePay = $gajiPokok + $bonus + $tunjanganEarned - $totalPotongan;
         $totalPendapatan = $takeHomePay + $totalLembur;
 
         $fasilitas = self::normalizeFasilitas($data['fasilitas'] ?? []);

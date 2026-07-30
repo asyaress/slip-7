@@ -65,6 +65,15 @@
                 <td class="amount highlight">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['gaji_pokok']) }}</td>
                 <td class="unit-label">Per - Bulan</td>
             </tr>
+            @if(($slip['bonus'] ?? 0) > 0)
+            <tr>
+                <td></td>
+                <td>Bonus</td>
+                <td>:</td>
+                <td class="amount">{{ \App\Services\SlipGajiCalculator::formatRupiah($slip['bonus']) }}</td>
+                <td class="unit-label">Masuk THP</td>
+            </tr>
+            @endif
             @php
                 $activeTunjangan = \App\Services\SlipGajiCalculator::resolveActiveTunjanganBulanan($slip);
                 $totalTunjBulanan = array_sum(array_column($activeTunjangan, 'amount'));

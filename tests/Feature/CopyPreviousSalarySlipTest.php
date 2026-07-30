@@ -43,6 +43,7 @@ class CopyPreviousSalarySlipTest extends TestCase
 
         $this->createSlip($employeeA, 5, 2026, [
             'gaji_pokok' => 5100000,
+            'bonus' => 300000,
             'fasilitas' => ['bpjs', 'makan'],
             'lembur_nominals' => [50000, 75000, 100000, 125000],
             'take_home_pay' => 6120000,
@@ -88,6 +89,7 @@ class CopyPreviousSalarySlipTest extends TestCase
             ->firstOrFail();
 
         $this->assertEquals(5100000.0, (float) $copiedSlipA->gaji_pokok);
+        $this->assertEquals(300000.0, (float) $copiedSlipA->bonus);
         $this->assertSame(
             SlipGajiCalculator::nomorSurat($employeeA->nomor, 6, 2026),
             $copiedSlipA->nomor_surat
@@ -232,6 +234,7 @@ class CopyPreviousSalarySlipTest extends TestCase
             'tahun' => $tahun,
             'nomor_surat' => $overrides['nomor_surat'] ?? "seed/{$employee->nomor}/{$bulan}/{$tahun}",
             'gaji_pokok' => $overrides['gaji_pokok'] ?? 4500000,
+            'bonus' => $overrides['bonus'] ?? 0,
             'tunjangan' => $overrides['tunjangan'] ?? ['transport' => 20000],
             'tunjangan_bulanan' => $overrides['tunjangan_bulanan'] ?? ['transport' => 520000, 'tempat_tinggal' => 300000],
             'potongan' => $overrides['potongan'] ?? ['angsuran' => 100000, 'kasbon' => 0, 'lain_lain' => 0],

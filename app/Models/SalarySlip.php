@@ -9,7 +9,7 @@ class SalarySlip extends Model
 {
     protected $fillable = [
         'employee_id', 'bulan', 'tahun', 'nomor_surat',
-        'gaji_pokok', 'tunjangan', 'tunjangan_bulanan', 'tunjangan_modes', 'potongan',
+        'gaji_pokok', 'bonus', 'tunjangan', 'tunjangan_bulanan', 'tunjangan_modes', 'potongan',
         'bpjs_kesehatan', 'makan_siang_malam', 'pensiun', 'fasilitas',
         'lembur', 'total_lembur',
         'jumlah_kehadiran', 'hadir', 'sakit_izin', 'tidak_hadir',
@@ -27,6 +27,7 @@ class SalarySlip extends Model
             'potongan' => 'array',
             'fasilitas' => 'array',
             'gaji_pokok' => 'float',
+            'bonus' => 'float',
             'bpjs_kesehatan' => 'float',
             'makan_siang_malam' => 'float',
             'pensiun' => 'float',
@@ -157,6 +158,7 @@ class SalarySlip extends Model
             'bulan' => $this->bulan,
             'tahun' => $this->tahun,
             'gaji_pokok' => $this->gaji_pokok,
+            'bonus' => $this->bonus ?? 0,
             'pot_angsuran' => $potongan['angsuran'] ?? 0,
             'pot_kasbon' => $potongan['kasbon'] ?? 0,
             'pot_lain_lain' => $potongan['lain_lain'] ?? 0,
@@ -253,6 +255,7 @@ class SalarySlip extends Model
             'tgl_masuk' => $employee->tgl_masuk->format('d-m-Y'),
             'tanggal_cetak' => $this->updated_at->locale('id')->translatedFormat('d F Y'),
             'gaji_pokok' => $this->gaji_pokok,
+            'bonus' => $this->bonus ?? 0,
             'tunjangan' => $tunjanganHarian,
             'tunjangan_bulanan' => $tunjanganBulanan,
             'tunjangan_modes' => $tunjanganModes,
