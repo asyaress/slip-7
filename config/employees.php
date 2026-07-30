@@ -23,7 +23,7 @@ return [
             'name' => 'Sri Wahyuni, S.Kom.',
         ],
         'finance' => [
-            'heading' => 'Menyetujui,',
+            'heading' => '',
             'title' => 'Keuangan',
             'name' => "Zahrotunnisa Qurrota'ayun Supriyanto, S.E.",
         ],
