@@ -296,13 +296,10 @@
     }
 
     .slip-page .signature-heading {
-        display: inline-block;
-        min-width: 150px;
-        padding: 7px 12px;
-        margin-bottom: 12px;
-        background: #10245f;
-        border-radius: 4px;
-        color: #ffffff;
+        display: block;
+        padding: 0;
+        margin-bottom: 8px;
+        color: #111111;
         font-size: 9.2pt;
         font-weight: 700;
         letter-spacing: 0;
@@ -348,8 +345,8 @@
     .slip-page .signature-name {
         margin: 0;
         padding-top: 9px;
-        border-top: 1px solid #10245f;
-        color: #10245f;
+        border-top: 1px solid #111111;
+        color: #111111;
         font-weight: bold;
         font-size: 9.2pt;
         text-decoration: none;

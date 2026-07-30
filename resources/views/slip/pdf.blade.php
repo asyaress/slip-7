@@ -288,13 +288,10 @@
         }
 
         .signature-heading {
-            display: inline-block;
-            min-width: 108px;
-            padding: 5px 7px;
-            margin-bottom: 8px;
-            background: #10245f;
-            border-radius: 3px;
-            color: #ffffff;
+            display: block;
+            padding: 0;
+            margin-bottom: 6px;
+            color: #111111;
             font-size: 7.4pt;
             font-weight: bold;
             letter-spacing: 0;
@@ -322,8 +319,8 @@
         .signature-name {
             margin: 0;
             padding-top: 6px;
-            border-top: 1px solid #10245f;
-            color: #10245f;
+            border-top: 1px solid #111111;
+            color: #111111;
             font-weight: bold;
             font-size: 7.7pt;
             text-decoration: none;
