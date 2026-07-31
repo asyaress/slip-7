@@ -20,6 +20,7 @@ class ReviewSlipController extends Controller
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->join('employees', 'salary_slips.employee_id', '=', 'employees.id')
+            ->where('employees.is_active', true)
             ->orderBy('employees.nomor')
             ->select('salary_slips.*')
             ->get();
