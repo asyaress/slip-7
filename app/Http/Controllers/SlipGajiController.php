@@ -140,7 +140,9 @@ class SlipGajiController extends Controller
                 : "Perubahan slip {$employee->name} tersimpan otomatis.",
             'review_url' => route('review.show', $saved),
             'edit_url' => route('slip.edit', $saved),
-            'updated_at' => optional($saved->updated_at)->format('H:i:s'),
+            'updated_at' => optional($saved->updated_at)
+                ->timezone('Asia/Makassar')
+                ->format('H:i:s'),
         ]);
     }
 

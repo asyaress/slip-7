@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\MonthlyTunjanganRate;
 use App\Models\SalarySlip;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -182,6 +183,43 @@ class AutoSaveSalarySlipTest extends TestCase
         $this->assertEquals(350000.0, (float) $slip->bonus);
         $this->assertSame('Target Juni', $slip->bonus_description);
         $this->assertEquals(4850000.0, (float) $slip->take_home_pay);
+    }
+
+    public function test_auto_save_timestamp_is_returned_in_wita(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 7, 31, 2, 7, 10, 'UTC'));
+
+        try {
+            $user = User::factory()->create();
+            $employee = Employee::create([
+                'nomor' => 16,
+                'name' => 'Eka',
+                'email' => 'eka@example.com',
+                'jabatan' => 'Operator',
+                'alamat' => 'Samarinda',
+                'tgl_masuk' => '2024-01-15',
+                'is_active' => true,
+            ]);
+
+            $this->actingAs($user)
+                ->postJson(route('slip.autosave'), [
+                    'employee_id' => $employee->id,
+                    'bulan' => 6,
+                    'tahun' => 2026,
+                    'gaji_pokok' => '4.500.000',
+                    'jumlah_kehadiran' => 26,
+                    'hadir' => 24,
+                    'sakit_izin' => 0,
+                    'tidak_hadir' => 2,
+                    'pot_angsuran' => 0,
+                    'pot_kasbon' => 0,
+                    'pot_lain_lain' => 0,
+                ])
+                ->assertOk()
+                ->assertJsonPath('updated_at', '10:07:10');
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_auto_save_does_not_overwrite_period_tunjangan_defaults(): void
