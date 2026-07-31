@@ -26,7 +26,9 @@
 
         <p>
             File PDF dilindungi password. Gunakan tanggal lahir Anda dengan format
-            <strong>DDMMYYYY</strong> untuk membukanya.
+            <strong>tanggal-bulan-tahun (DDMMYYYY)</strong> tanpa spasi atau tanda pemisah.
+            Contoh: lahir 16 Februari 1994, maka password PDF adalah
+            <strong>16021994</strong>.
         </p>
 
         <p>Demikian pemberitahuan ini kami sampaikan. Apabila ada pertanyaan, silakan hubungi HRD.</p>
