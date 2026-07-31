@@ -5,7 +5,7 @@
 @section('page-subtitle', $employee->name)
 
 @section('header-actions')
-    <a href="{{ route('employees.index') }}" class="btn-secondary text-sm">← Kembali</a>
+    <a href="{{ route('employees.index') }}" class="btn-secondary text-sm">&larr; Kembali</a>
 @endsection
 
 @section('content')
@@ -21,7 +21,7 @@
 
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">NIP <span class="text-slate-400 font-normal">(otomatis)</span></label>
-            <input type="text" value="{{ $employee->resolvedNip() ?? '—' }}" readonly class="input-field bg-slate-50 font-mono text-sm">
+            <input type="text" value="{{ $employee->resolvedNip() ?? '-' }}" readonly class="input-field bg-slate-50 font-mono text-sm">
         </div>
 
         <div>
@@ -57,7 +57,7 @@
             <div>
                 <label for="jenis_kelamin" class="block text-sm font-medium text-slate-700 mb-1">Jenis Kelamin</label>
                 <select name="jenis_kelamin" id="jenis_kelamin" class="input-field">
-                    <option value="">— Pilih —</option>
+                    <option value="">- Pilih -</option>
                     <option value="LAKI-LAKI" @selected(old('jenis_kelamin', $employee->jenis_kelamin) === 'LAKI-LAKI')>Laki-laki</option>
                     <option value="PEREMPUAN" @selected(old('jenis_kelamin', $employee->jenis_kelamin) === 'PEREMPUAN')>Perempuan</option>
                 </select>
@@ -77,10 +77,15 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            <input type="checkbox" name="is_active" id="is_active" value="1"
-                @checked(old('is_active', $employee->is_active)) class="rounded border-slate-300 text-maroon-800 focus:ring-maroon-700">
-            <label for="is_active" class="text-sm text-slate-700">Karyawan Aktif</label>
+        <div>
+            <label for="is_active" class="block text-sm font-medium text-slate-700 mb-1">Status Kerja</label>
+            <select name="is_active" id="is_active" required class="input-field">
+                @php $statusValue = (string) old('is_active', $employee->is_active ? '1' : '0'); @endphp
+                <option value="1" @selected($statusValue === '1')>Aktif</option>
+                <option value="0" @selected($statusValue === '0')>Resigned</option>
+            </select>
+            <p class="mt-1 text-xs text-slate-500">Karyawan resigned tidak akan muncul di Input Slip Gaji dan tidak ikut Copy Slip Bulan Sebelumnya.</p>
+            @error('is_active') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="pt-2 flex gap-3">

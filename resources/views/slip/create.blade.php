@@ -3,7 +3,7 @@
 @section('title', isset($editingSlip) ? 'Edit Slip Gaji' : 'Input Slip Gaji')
 @section('page-title', isset($editingSlip) ? 'Edit Slip Gaji' : 'Input Slip Gaji')
 @section('page-subtitle', isset($editingSlip)
-    ? 'Perbarui slip ' . $editingSlip->employee->name . ' — ' . $editingSlip->periodeLabel()
+    ? 'Perbarui slip ' . $editingSlip->employee->name . ' - ' . $editingSlip->periodeLabel()
     : 'Pilih karyawan dan isi rincian gaji untuk generate slip')
 
 @php
@@ -43,7 +43,7 @@
     <div class="lg:col-span-2">
         <div id="existing-slip-notice" class="hidden card p-4 mb-6 bg-amber-50 border-amber-200">
             <p class="text-sm text-amber-900">
-                <strong>Slip periode ini sudah ada.</strong> Data form diisi otomatis — simpan akan <strong>memperbarui</strong> slip yang sudah ada, bukan membuat baru.
+                <strong>Slip periode ini sudah ada.</strong> Data form diisi otomatis - simpan akan <strong>memperbarui</strong> slip yang sudah ada, bukan membuat baru.
             </p>
         </div>
 
@@ -74,7 +74,7 @@
                             @foreach($employees as $emp)
                                 <option value="{{ $emp->id }}" data-jabatan="{{ $emp->jabatan }}" data-email="{{ $emp->email }}"
                                     @selected($formValue('employee_id') == $emp->id)>
-                                    {{ $emp->nomor }}. {{ $emp->name }}
+                                    {{ $emp->nomor }}. {{ $emp->name }}@if($emp->isResigned()) (Resigned)@endif
                                 </option>
                             @endforeach
                         </select>

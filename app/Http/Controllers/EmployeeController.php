@@ -31,7 +31,7 @@ class EmployeeController extends Controller
             'tgl_lahir' => 'nullable|date',
             'jenis_kelamin' => 'nullable|in:LAKI-LAKI,PEREMPUAN',
             'tgl_masuk' => 'required|date',
-            'is_active' => 'boolean',
+            'is_active' => 'required|boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');

@@ -72,6 +72,118 @@ class AutoSaveSalarySlipTest extends TestCase
         $this->assertEquals(4990000.0, (float) $slip->take_home_pay);
     }
 
+    public function test_resigned_employee_is_hidden_from_salary_slip_input(): void
+    {
+        $user = User::factory()->create();
+
+        Employee::create([
+            'nomor' => 12,
+            'name' => 'Ayu Aktif',
+            'email' => 'ayu@example.com',
+            'jabatan' => 'Operator',
+            'alamat' => 'Samarinda',
+            'tgl_masuk' => '2024-01-15',
+            'is_active' => true,
+        ]);
+
+        Employee::create([
+            'nomor' => 13,
+            'name' => 'Budi Resigned',
+            'email' => 'budi@example.com',
+            'jabatan' => 'Operator',
+            'alamat' => 'Samarinda',
+            'tgl_masuk' => '2024-01-15',
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('slip.create'))
+            ->assertOk()
+            ->assertSee('Ayu Aktif')
+            ->assertDontSee('Budi Resigned');
+    }
+
+    public function test_auto_save_rejects_resigned_employee(): void
+    {
+        $user = User::factory()->create();
+        $employee = Employee::create([
+            'nomor' => 14,
+            'name' => 'Cici Resigned',
+            'email' => 'cici@example.com',
+            'jabatan' => 'Operator',
+            'alamat' => 'Samarinda',
+            'tgl_masuk' => '2024-01-15',
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), [
+                'employee_id' => $employee->id,
+                'bulan' => 6,
+                'tahun' => 2026,
+                'gaji_pokok' => '4.500.000',
+                'jumlah_kehadiran' => 26,
+                'hadir' => 24,
+                'sakit_izin' => 0,
+                'tidak_hadir' => 2,
+                'pot_angsuran' => 0,
+                'pot_kasbon' => 0,
+                'pot_lain_lain' => 0,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('employee_id');
+
+        $this->assertDatabaseCount('salary_slips', 0);
+    }
+
+    public function test_auto_save_updates_bonus_on_existing_slip(): void
+    {
+        $user = User::factory()->create();
+        $employee = Employee::create([
+            'nomor' => 15,
+            'name' => 'Doni',
+            'email' => 'doni@example.com',
+            'jabatan' => 'Operator',
+            'alamat' => 'Samarinda',
+            'tgl_masuk' => '2024-01-15',
+            'is_active' => true,
+        ]);
+
+        $basePayload = [
+            'employee_id' => $employee->id,
+            'bulan' => 6,
+            'tahun' => 2026,
+            'gaji_pokok' => '4.500.000',
+            'jumlah_kehadiran' => 26,
+            'hadir' => 24,
+            'sakit_izin' => 0,
+            'tidak_hadir' => 2,
+            'pot_angsuran' => 0,
+            'pot_kasbon' => 0,
+            'pot_lain_lain' => 0,
+        ];
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), $basePayload + [
+                'bonus' => 0,
+                'bonus_description' => null,
+            ])
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), $basePayload + [
+                'bonus' => '350.000',
+                'bonus_description' => 'Target Juni',
+            ])
+            ->assertOk();
+
+        $slip = SalarySlip::firstOrFail();
+
+        $this->assertEquals(350000.0, (float) $slip->bonus);
+        $this->assertSame('Target Juni', $slip->bonus_description);
+        $this->assertEquals(4850000.0, (float) $slip->take_home_pay);
+    }
+
     public function test_auto_save_does_not_overwrite_period_tunjangan_defaults(): void
     {
         $user = User::factory()->create();

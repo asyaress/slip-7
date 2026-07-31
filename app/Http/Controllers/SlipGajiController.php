@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SlipGajiController extends Controller
@@ -24,7 +25,7 @@ class SlipGajiController extends Controller
 
     public function create(): View
     {
-        $employees = Employee::where('is_active', true)->orderBy('nomor')->get();
+        $employees = $this->selectableEmployees();
         $preserveForm = ! empty(session()->getOldInput());
         $lemburWeeks = $this->resolveLemburWeeks();
 
@@ -34,7 +35,7 @@ class SlipGajiController extends Controller
     public function edit(SalarySlip $slip): View
     {
         $slip->load('employee');
-        $employees = Employee::where('is_active', true)->orderBy('nomor')->get();
+        $employees = $this->selectableEmployees($slip->employee);
         $editingSlip = $slip;
         $formData = $slip->toFormInputs();
         $preserveForm = ! empty(session()->getOldInput());
@@ -110,7 +111,7 @@ class SlipGajiController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateSlip($request);
-        $employee = Employee::findOrFail($validated['employee_id']);
+        $employee = $this->findSelectableEmployee($request, $validated);
 
         $slip = SlipGajiBuilder::buildFromValidated($validated, $employee);
         $saved = SlipGajiBuilder::saveSlip($slip, $employee);
@@ -125,7 +126,7 @@ class SlipGajiController extends Controller
     public function autoSave(Request $request): JsonResponse
     {
         $validated = $this->validateSlip($request);
-        $employee = Employee::findOrFail($validated['employee_id']);
+        $employee = $this->findSelectableEmployee($request, $validated);
 
         $slip = SlipGajiBuilder::buildFromValidated($validated, $employee);
         $saved = SlipGajiBuilder::saveSlip($slip, $employee);
@@ -154,6 +155,7 @@ class SlipGajiController extends Controller
         $targetPeriod = Carbon::create((int) $validated['tahun'], (int) $validated['bulan'], 1);
         $sourcePeriod = $targetPeriod->copy()->subMonthNoOverflow();
         $sourceSlips = SalarySlip::with('employee')
+            ->whereHas('employee', fn ($query) => $query->active())
             ->where('bulan', $sourcePeriod->month)
             ->where('tahun', $sourcePeriod->year)
             ->orderBy('employee_id')
@@ -205,7 +207,7 @@ class SlipGajiController extends Controller
     public function preview(Request $request): View
     {
         $validated = $this->validateSlip($request);
-        $employee = Employee::findOrFail($validated['employee_id']);
+        $employee = $this->findSelectableEmployee($request, $validated);
 
         $slip = SlipGajiBuilder::buildFromValidated($validated, $employee);
         $slip = SlipGajiBuilder::attachQrSignature($slip);
@@ -238,6 +240,7 @@ class SlipGajiController extends Controller
 
         $validated = $request->validate(array_merge([
             'employee_id' => 'required|exists:employees,id',
+            '_editing_slip_id' => 'nullable|integer|exists:salary_slips,id',
             'bulan' => 'required|integer|min:1|max:12',
             'tahun' => 'required|integer|min:2020|max:2100',
             'gaji_pokok' => 'required|numeric|min:0',
@@ -292,6 +295,38 @@ class SlipGajiController extends Controller
         $tahun = (int) old('tahun', $editingSlip?->tahun ?? request()->integer('tahun', now()->year));
 
         return LemburWeekService::weeksForForm($bulan, $tahun, $editingSlip?->lembur);
+    }
+
+    private function selectableEmployees(?Employee $selectedEmployee = null)
+    {
+        return Employee::query()
+            ->where(function ($query) use ($selectedEmployee): void {
+                $query->active();
+
+                if ($selectedEmployee) {
+                    $query->orWhereKey($selectedEmployee->id);
+                }
+            })
+            ->orderBy('nomor')
+            ->get();
+    }
+
+    private function findSelectableEmployee(Request $request, array $validated): Employee
+    {
+        $employee = Employee::findOrFail($validated['employee_id']);
+
+        if ($employee->is_active) {
+            return $employee;
+        }
+
+        $editingSlipId = $request->input('_editing_slip_id');
+        if ($editingSlipId && SalarySlip::whereKey($editingSlipId)->where('employee_id', $employee->id)->exists()) {
+            return $employee;
+        }
+
+        throw ValidationException::withMessages([
+            'employee_id' => 'Karyawan resigned tidak bisa dipilih untuk input slip gaji baru.',
+        ]);
     }
 
     private function normalizeLemburFields(Request $request): void

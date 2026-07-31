@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -24,6 +25,21 @@ class Employee extends Model
     public function salarySlips(): HasMany
     {
         return $this->hasMany(SalarySlip::class);
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function isResigned(): bool
+    {
+        return ! $this->is_active;
+    }
+
+    public function statusLabel(): string
+    {
+        return $this->is_active ? 'Aktif' : 'Resigned';
     }
 
     public function masaKerja(): string

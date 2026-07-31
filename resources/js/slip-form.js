@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let autoSaveTimer = null;
     let autoSaveController = null;
     let autoSaveSequence = 0;
+    let autoSaveChangeVersion = 0;
 
     const rupiahFields = [
         'gaji_pokok', 'bonus',
@@ -182,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        autoSaveChangeVersion++;
         window.clearTimeout(autoSaveTimer);
 
         if (!hasAutoSaveMinimumData()) {
@@ -199,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const sequence = ++autoSaveSequence;
+        const changeVersion = autoSaveChangeVersion;
 
         if (autoSaveController) {
             autoSaveController.abort();
@@ -219,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 signal: autoSaveController.signal,
             });
 
-            if (sequence !== autoSaveSequence) {
+            if (sequence !== autoSaveSequence || changeVersion !== autoSaveChangeVersion) {
                 return;
             }
 

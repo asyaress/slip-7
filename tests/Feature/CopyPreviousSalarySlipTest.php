@@ -173,6 +173,44 @@ class CopyPreviousSalarySlipTest extends TestCase
         $this->assertDatabaseCount('salary_slips', 0);
     }
 
+    public function test_copy_previous_month_skips_resigned_employees(): void
+    {
+        $user = User::factory()->create();
+        $activeEmployee = $this->createEmployee(1, 'Ayu');
+        $resignedEmployee = $this->createEmployee(2, 'Bima');
+        $resignedEmployee->update(['is_active' => false]);
+
+        $this->createSlip($activeEmployee, 5, 2026, [
+            'gaji_pokok' => 5100000,
+        ]);
+        $this->createSlip($resignedEmployee, 5, 2026, [
+            'gaji_pokok' => 4700000,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('slip.copy-previous'), [
+            'bulan' => 6,
+            'tahun' => 2026,
+        ]);
+
+        $response->assertRedirect(route('slip.create', ['bulan' => 6, 'tahun' => 2026]));
+        $response->assertSessionHas('success', function (?string $message): bool {
+            return is_string($message)
+                && str_contains($message, '1 slip dibuat')
+                && str_contains($message, '0 slip diperbarui');
+        });
+
+        $this->assertDatabaseHas('salary_slips', [
+            'employee_id' => $activeEmployee->id,
+            'bulan' => 6,
+            'tahun' => 2026,
+        ]);
+        $this->assertDatabaseMissing('salary_slips', [
+            'employee_id' => $resignedEmployee->id,
+            'bulan' => 6,
+            'tahun' => 2026,
+        ]);
+    }
+
     public function test_it_can_redirect_back_to_review_after_copying_previous_month_slips(): void
     {
         $user = User::factory()->create();
