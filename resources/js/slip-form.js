@@ -24,9 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const preserveForm = root?.dataset.preserveForm === '1';
     const autoSaveDelay = 1000;
     let autoSaveTimer = null;
-    let autoSaveController = null;
     let autoSaveSequence = 0;
     let autoSaveChangeVersion = 0;
+    let saveInProgress = false;
+    let saveQueued = false;
 
     const rupiahFields = [
         'gaji_pokok', 'bonus',
@@ -178,12 +179,20 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
+    function flushAutoSave(delay = 100) {
+        if (!autoSaveUrl || !slipForm || !hasAutoSaveMinimumData()) {
+            return;
+        }
+
+        window.clearTimeout(autoSaveTimer);
+        autoSaveTimer = window.setTimeout(saveNow, delay);
+    }
+
     function queueAutoSave(delay = autoSaveDelay) {
         if (!autoSaveUrl || !slipForm) {
             return;
         }
 
-        autoSaveChangeVersion++;
         window.clearTimeout(autoSaveTimer);
 
         if (!hasAutoSaveMinimumData()) {
@@ -191,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        autoSaveChangeVersion++;
         setAutoSaveStatus('pending', 'Perubahan belum tersimpan');
         autoSaveTimer = window.setTimeout(saveNow, delay);
     }
@@ -200,14 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const sequence = ++autoSaveSequence;
-        const changeVersion = autoSaveChangeVersion;
-
-        if (autoSaveController) {
-            autoSaveController.abort();
+        if (saveInProgress) {
+            saveQueued = true;
+            return;
         }
 
-        autoSaveController = new AbortController();
+        saveInProgress = true;
+        const sequence = ++autoSaveSequence;
+        const changeVersionAtStart = autoSaveChangeVersion;
+
         calculate();
         setAutoSaveStatus('saving', 'Menyimpan otomatis...');
 
@@ -219,10 +230,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                signal: autoSaveController.signal,
             });
 
-            if (sequence !== autoSaveSequence || changeVersion !== autoSaveChangeVersion) {
+            if (sequence !== autoSaveSequence) {
                 return;
             }
 
@@ -238,13 +248,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             syncEditingSlipId(result.slip_id);
             setEditMode(true);
-            setAutoSaveStatus('saved', `${result.message ?? 'Tersimpan otomatis.'} ${result.updated_at ?? ''}`.trim());
-        } catch (error) {
-            if (error.name === 'AbortError') {
+
+            if (changeVersionAtStart !== autoSaveChangeVersion) {
+                setAutoSaveStatus('pending', 'Perubahan belum tersimpan');
+                flushAutoSave(100);
                 return;
             }
 
+            setAutoSaveStatus('saved', `${result.message ?? 'Tersimpan otomatis.'} ${result.updated_at ?? ''}`.trim());
+        } catch {
             setAutoSaveStatus('error', 'Auto-save gagal, cek koneksi lalu ubah lagi');
+        } finally {
+            saveInProgress = false;
+            if (saveQueued) {
+                saveQueued = false;
+                flushAutoSave(0);
+            }
         }
     }
 
@@ -344,8 +363,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         initRupiahInputs(container);
-        bindLemburInputs();
         calculate();
+    }
+
+    function setupLemburAutoSave() {
+        const container = document.getElementById('lembur-rows');
+        if (!container || container.dataset.lemburAutosaveBound === '1') {
+            return;
+        }
+
+        container.dataset.lemburAutosaveBound = '1';
+
+        container.addEventListener('rupiah-change', event => {
+            if (!event.target.classList.contains('lembur-input')) {
+                return;
+            }
+
+            calculate();
+            queueAutoSave();
+        });
+
+        container.addEventListener('change', event => {
+            if (!event.target.classList.contains('lembur-status')) {
+                return;
+            }
+
+            calculate();
+            queueAutoSave();
+        });
+
+        container.addEventListener('blur', event => {
+            if (!event.target.classList.contains('lembur-input')) {
+                return;
+            }
+
+            calculate();
+            queueAutoSave(300);
+        }, true);
+    }
+
+    function prepareLemburSection(root = document.getElementById('lembur-rows')) {
+        if (!root) {
+            return;
+        }
+
+        initRupiahInputs(root);
+        setupLemburAutoSave();
     }
 
     async function fetchMonthlyTunjangan() {
@@ -422,6 +485,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let periodChangeToken = 0;
+
     async function checkExistingSlip() {
         const employeeId = employeeSelect?.value;
         const bulan = bulanSelect?.value;
@@ -464,11 +529,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function onPeriodChange() {
+        const token = ++periodChangeToken;
         syncCopyPreviousForm();
         const found = await checkExistingSlip();
+        if (token !== periodChangeToken) {
+            return;
+        }
+
         if (!found) {
             await Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]);
         }
+
+        if (token !== periodChangeToken) {
+            return;
+        }
+
+        prepareLemburSection();
+        setAutoSaveStatus(
+            hasAutoSaveMinimumData() ? 'saved' : 'idle',
+            hasAutoSaveMinimumData()
+                ? 'Auto-save aktif'
+                : 'Auto-save aktif setelah karyawan dan gaji pokok diisi'
+        );
     }
 
     function syncCopyPreviousForm() {
@@ -514,7 +596,11 @@ document.addEventListener('DOMContentLoaded', () => {
         syncBulananOverrideFlags();
         calculate();
         if (!employeeSelect?.value && bulanSelect?.value && tahunInput?.value) {
-            Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]);
+            Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]).then(() => {
+                prepareLemburSection();
+            });
+        } else {
+            prepareLemburSection();
         }
     } else {
         const initialFormRaw = root?.dataset.initialForm;
@@ -522,24 +608,18 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 fillForm(JSON.parse(initialFormRaw));
                 setEditMode(true);
+                prepareLemburSection();
             } catch {
                 // ignore invalid JSON
             }
         } else if (employeeSelect?.value && bulanSelect?.value && tahunInput?.value) {
             onPeriodChange();
         } else if (bulanSelect?.value && tahunInput?.value) {
-            fetchMonthlyTunjangan();
+            Promise.all([fetchMonthlyTunjangan(), fetchLemburWeeks()]).then(() => {
+                prepareLemburSection();
+            });
         }
     }
-
-    setAutoSaveStatus(
-        hasAutoSaveMinimumData() ? 'saved' : 'idle',
-        hasAutoSaveMinimumData()
-            ? 'Auto-save aktif'
-            : 'Auto-save aktif setelah karyawan dan gaji pokok diisi'
-    );
-
-    initRupiahInputs();
 
     function sumFields(ids) {
         return ids.reduce((sum, id) => sum + parseRupiah(document.getElementById(id)?.value), 0);
@@ -642,22 +722,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLemburSummary(totalLembur);
     }
 
-    function bindLemburInputs() {
-        document.querySelectorAll('.lembur-input, .lembur-status').forEach(el => {
-            if (el.dataset.slipFormBound === '1') {
-                return;
-            }
-
-            el.dataset.slipFormBound = '1';
-            el.addEventListener('input', calculate);
-            el.addEventListener('rupiah-change', calculate);
-            el.addEventListener('change', calculate);
-            el.addEventListener('input', () => queueAutoSave());
-            el.addEventListener('rupiah-change', () => queueAutoSave());
-            el.addEventListener('change', () => queueAutoSave());
-        });
-    }
-
     window.slipFormCalculate = calculate;
 
     function bindTunjanganOverrideListeners() {
@@ -728,12 +792,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.calc-trigger').forEach(el => {
-        el.addEventListener('input', calculate);
-        el.addEventListener('change', calculate);
-        el.addEventListener('rupiah-change', calculate);
-        el.addEventListener('input', () => queueAutoSave());
-        el.addEventListener('change', () => queueAutoSave());
-        el.addEventListener('rupiah-change', () => queueAutoSave());
+        if (el.classList.contains('rupiah-input')) {
+            el.addEventListener('rupiah-change', calculate);
+            el.addEventListener('rupiah-change', () => queueAutoSave());
+        } else {
+            el.addEventListener('input', calculate);
+            el.addEventListener('change', calculate);
+            el.addEventListener('input', () => queueAutoSave());
+            el.addEventListener('change', () => queueAutoSave());
+        }
     });
 
     numberFields.forEach(id => {
@@ -748,7 +815,16 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('change', () => queueAutoSave());
     });
 
-    bindLemburInputs();
+    setupLemburAutoSave();
+    initRupiahInputs();
+    prepareLemburSection();
     syncBulananOverrideFlags();
     calculate();
+
+    setAutoSaveStatus(
+        hasAutoSaveMinimumData() ? 'saved' : 'idle',
+        hasAutoSaveMinimumData()
+            ? 'Auto-save aktif'
+            : 'Auto-save aktif setelah karyawan dan gaji pokok diisi'
+    );
 });

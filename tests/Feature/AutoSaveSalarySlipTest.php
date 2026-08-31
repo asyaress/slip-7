@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\MonthlyTunjanganRate;
 use App\Models\SalarySlip;
 use App\Models\User;
+use App\Services\LemburWeekService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -414,5 +415,70 @@ class AutoSaveSalarySlipTest extends TestCase
         $this->assertEquals(4760000.0, (float) $slip->take_home_pay);
         $this->assertEquals(260000.0, (float) $slip->tunjangan_bulanan['transport']);
         $this->assertSame('bulanan', $slip->tunjangan_modes['transport']);
+    }
+
+    public function test_auto_save_updates_lembur_on_existing_slip(): void
+    {
+        $user = User::factory()->create();
+        $employee = Employee::create([
+            'nomor' => 17,
+            'name' => 'Fajar',
+            'email' => 'fajar@example.com',
+            'jabatan' => 'Operator',
+            'alamat' => 'Samarinda',
+            'tgl_masuk' => '2024-01-15',
+            'is_active' => true,
+        ]);
+
+        $weeks = LemburWeekService::weeksForMonth(6, 2026);
+        $lemburRows = array_map(fn (array $week) => [
+            'minggu' => $week['minggu'],
+            'periode' => $week['periode'],
+            'date_start' => $week['date_start'],
+            'date_end' => $week['date_end'],
+            'nominal' => 0,
+            'status' => LemburWeekService::STATUS_BELUM_DIBAYAR,
+        ], $weeks);
+
+        $basePayload = [
+            'employee_id' => $employee->id,
+            'bulan' => 6,
+            'tahun' => 2026,
+            'gaji_pokok' => '4.500.000',
+            'jumlah_kehadiran' => 26,
+            'hadir' => 24,
+            'sakit_izin' => 0,
+            'tidak_hadir' => 2,
+            'pot_angsuran' => 0,
+            'pot_kasbon' => 0,
+            'pot_lain_lain' => 0,
+            'lembur' => $lemburRows,
+        ];
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), $basePayload)
+            ->assertOk();
+
+        $updatedLemburRows = $lemburRows;
+        $updatedLemburRows[0]['nominal'] = '175.000';
+        $updatedLemburRows[0]['status'] = LemburWeekService::STATUS_SUDAH_DIBAYAR;
+        $updatedLemburRows[1]['nominal'] = '50.000';
+
+        $this->actingAs($user)
+            ->postJson(route('slip.autosave'), array_merge($basePayload, [
+                'lembur' => $updatedLemburRows,
+            ]))
+            ->assertOk();
+
+        $slip = SalarySlip::firstOrFail()->fresh();
+
+        $this->assertEquals(175000.0, (float) $slip->lembur['weeks'][0]['nominal']);
+        $this->assertSame(
+            LemburWeekService::STATUS_SUDAH_DIBAYAR,
+            $slip->lembur['weeks'][0]['status']
+        );
+        $this->assertEquals(50000.0, (float) $slip->lembur['weeks'][1]['nominal']);
+        $this->assertEquals(225000.0, (float) $slip->total_lembur);
+        $this->assertEquals(4725000.0, (float) $slip->total_pendapatan);
     }
 }
