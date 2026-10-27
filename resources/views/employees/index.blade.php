@@ -6,11 +6,14 @@
 
 @section('content')
 <div class="card overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-slate-500">
             {{ $employees->where('is_active', true)->count() }} aktif,
             {{ $employees->where('is_active', false)->count() }} resigned
         </p>
+        <a href="{{ route('employees.create') }}" class="btn-primary text-sm">
+            + Tambah karyawan
+        </a>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -28,7 +31,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                @foreach($employees as $employee)
+                @forelse($employees as $employee)
                 <tr class="hover:bg-slate-50/80">
                     <td class="px-6 py-3.5 text-slate-500">{{ $employee->nomor }}</td>
                     <td class="px-6 py-3.5 text-slate-600 whitespace-nowrap font-mono text-xs">{{ $employee->resolvedNip() ?? '-' }}</td>
@@ -51,7 +54,14 @@
                         </a>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="9" class="px-6 py-10 text-center text-slate-500">
+                        Belum ada data karyawan.
+                        <a href="{{ route('employees.create') }}" class="text-maroon-800 font-medium hover:underline">Tambah karyawan pertama</a>
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/karyawan', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::get('/karyawan/tambah', [EmployeeController::class, 'create'])->name('employees.create');
+    Route::post('/karyawan', [EmployeeController::class, 'store'])->name('employees.store');
     Route::get('/karyawan/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
     Route::put('/karyawan/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
 
